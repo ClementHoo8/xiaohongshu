@@ -1,6 +1,7 @@
 "use client"
 
 import { FormEvent, useState } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { AlertCircle, Eye, EyeOff, LoaderCircle, LockKeyhole } from "lucide-react"
 import { useAuth } from "@/components/AuthProvider"
@@ -40,7 +41,14 @@ export default function LoginPage() {
     <main className="grid min-h-screen bg-background lg:grid-cols-[minmax(320px,0.72fr)_minmax(480px,1.28fr)]">
       <section className="hidden border-r bg-foreground px-10 py-12 text-background lg:flex lg:flex-col">
         <div className="flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-md bg-primary text-lg font-semibold text-primary-foreground">R</span>
+          <Image
+            src="/logo.png"
+            alt="Pure Meal"
+            width={44}
+            height={44}
+            priority
+            className="size-11 shrink-0 rounded-md"
+          />
           <div>
             <h1 className="text-base font-semibold">Pure Meal</h1>
             <p className="text-xs text-background/65">宠物零食素材与 AI 创作平台</p>
@@ -55,7 +63,14 @@ export default function LoginPage() {
       <section className="flex min-h-screen items-center justify-center px-5 py-10 sm:px-8">
         <div className="w-full max-w-sm">
           <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <span className="grid size-10 place-items-center rounded-md bg-primary font-semibold text-primary-foreground">R</span>
+            <Image
+              src="/logo.png"
+              alt="Pure Meal"
+              width={40}
+              height={40}
+              priority
+              className="size-10 shrink-0 rounded-md"
+            />
             <div>
               <h1 className="text-sm font-semibold">Pure Meal</h1>
               <p className="text-xs text-muted-foreground">宠物零食素材库</p>

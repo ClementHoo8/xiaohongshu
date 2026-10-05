@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { BarChart3, CheckCircle2, ClipboardCheck, Clock3, FileText, Heart, Lightbulb, LoaderCircle, MessageSquarePlus, PawPrint, Plus, Search, Sparkles, UserRound } from "lucide-react"
@@ -102,9 +103,14 @@ export function Header({
     <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
       <div className="app-container flex h-16 items-center gap-3 lg:gap-5">
         <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="Pure Meal 素材库首页">
-          <span className="grid size-9 place-items-center rounded-md bg-primary font-semibold text-primary-foreground">
-            R
-          </span>
+          <Image
+            src="/logo.png"
+            alt="Pure Meal"
+            width={36}
+            height={36}
+            priority
+            className="size-9 shrink-0 rounded-md"
+          />
           <span className="hidden leading-tight sm:block">
             <strong className="block text-sm font-semibold">Pure Meal</strong>
             <span className="block text-[11px] text-muted-foreground">宠物零食素材库</span>
