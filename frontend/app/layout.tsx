@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Ruby Rain 香氛素材库",
-  description: "小红书汽车香氛素材资产库",
+  title: "Ruby Rain 宠物零食素材库",
+  description: "小红书宠物零食与鲜食素材资产库",
 }
 
 export default function RootLayout({

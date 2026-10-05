@@ -49,7 +49,7 @@ export function MaterialTable({ materials, onToggleFavorite, onRowClick }: Mater
                 ) : (
                   <>
                     <p>{material.brand || "-"}</p>
-                    {material.car_model && <p className="mt-1 text-xs text-muted-foreground">{material.car_model}</p>}
+                    {material.category && <p className="mt-1 text-xs text-muted-foreground">{material.category}</p>}
                   </>
                 )}
               </TableCell>

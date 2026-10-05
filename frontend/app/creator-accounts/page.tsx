@@ -176,7 +176,7 @@ export default function CreatorAccountsPage() {
   const [notesLoading, setNotesLoading] = useState(false)
   const [notesSort, setNotesSort] = useState<"engagement" | "published_at" | "collections" | "likes" | "comments">("engagement")
   const [discoveryOpen, setDiscoveryOpen] = useState(false)
-  const [discoveryKeywords, setDiscoveryKeywords] = useState("汽车香氛、车载香薰、车内香水、汽车好物、车内氛围感")
+  const [discoveryKeywords, setDiscoveryKeywords] = useState("宠物零食、冻干、猫条、宠物鲜食、养宠好物")
   const [discoverySource, setDiscoverySource] = useState<CreatorAccount["data_source"]>("auto")
   const [discoveryPageLimit, setDiscoveryPageLimit] = useState(2)
   const [discoverySearched, setDiscoverySearched] = useState(false)
@@ -866,7 +866,7 @@ export default function CreatorAccountsPage() {
                 value={discoveryKeywords}
                 onChange={(event) => setDiscoveryKeywords(event.target.value)}
                 rows={3}
-                placeholder="汽车香氛、车载香薰、汽车好物"
+                placeholder="宠物零食、冻干、宠物鲜食"
               />
             </div>
             <div className="space-y-1.5">
@@ -1023,7 +1023,7 @@ export default function CreatorAccountsPage() {
               </div>
               <div className="space-y-1.5">
                 <label htmlFor="creator-pillars" className="text-sm font-medium">内容支柱</label>
-                <Textarea id="creator-pillars" value={pillarsText} onChange={(event) => setPillarsText(event.target.value)} rows={4} placeholder="用逗号分隔，例如：车内香氛、用车场景、送礼" />
+                <Textarea id="creator-pillars" value={pillarsText} onChange={(event) => setPillarsText(event.target.value)} rows={4} placeholder="用逗号分隔，例如：宠物零食、养宠场景、送礼" />
               </div>
             </div>
 

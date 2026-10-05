@@ -617,7 +617,7 @@ export default function TasksPage() {
           {error && <div className="border-y border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
           <form onSubmit={handleSaveGoal} className="space-y-5">
             <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_180px_140px]">
-              <div className="space-y-1.5"><label htmlFor="goal-title" className="text-sm font-medium">工作室本周目标</label><Input id="goal-title" value={goalForm.title} onChange={(event) => setGoalForm((current) => ({ ...current, title: event.target.value }))} placeholder="例如：建立新能源车香氛内容矩阵" /></div>
+              <div className="space-y-1.5"><label htmlFor="goal-title" className="text-sm font-medium">工作室本周目标</label><Input id="goal-title" value={goalForm.title} onChange={(event) => setGoalForm((current) => ({ ...current, title: event.target.value }))} placeholder="例如：建立宠物零食内容矩阵" /></div>
               <div className="space-y-1.5"><label htmlFor="goal-week" className="text-sm font-medium">起始日期</label><Input id="goal-week" type="date" value={goalForm.week_start} onChange={(event) => setGoalForm((current) => ({ ...current, week_start: event.target.value }))} /></div>
               <div className="space-y-1.5"><label className="text-sm font-medium">状态</label><Select value={goalForm.status} onValueChange={(value) => setGoalForm((current) => ({ ...current, status: value as WeeklyGoal["status"] }))}><SelectTrigger aria-label="周目标状态"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="draft">草稿</SelectItem><SelectItem value="active">执行中</SelectItem><SelectItem value="completed">已完成</SelectItem><SelectItem value="archived">已归档</SelectItem></SelectContent></Select></div>
             </div>

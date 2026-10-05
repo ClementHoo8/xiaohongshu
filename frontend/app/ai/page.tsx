@@ -83,13 +83,13 @@ import {
   type Attachment,
   type Material,
   type MaterialScope,
-  type VehicleOption,
+  type BrandCategoryOption,
 } from "@/lib/api"
 import { isImageAttachment } from "@/lib/materials"
 import { cn } from "@/lib/utils"
 
 const TASKS = [
-  { value: "concept" as const, label: "讨论创意", icon: Sparkles, placeholder: "先说说你想写的内容，AI 会和你逐步确认参考点、车型与帖子目标。" },
+  { value: "concept" as const, label: "讨论创意", icon: Sparkles, placeholder: "先说说你想写的内容，AI 会和你逐步确认参考点、品类与帖子目标。" },
   { value: "note" as const, label: "正文打磨", icon: FileText, placeholder: "继续讨论正文结构、卖点表达或需要补充的事实。" },
   { value: "video" as const, label: "视频脚本", icon: Clapperboard, placeholder: "生成一条 60 秒短视频脚本，包含前三秒钩子和分镜。" },
   { value: "rewrite" as const, label: "内容改写", icon: RefreshCw, placeholder: "请根据所选素材重新组织表达，避免照搬原文。" },
@@ -97,7 +97,7 @@ const TASKS = [
 
 const MATERIAL_FILTERS: { value: "all" | MaterialScope; label: string }[] = [
   { value: "all", label: "全部" },
-  { value: "vehicle", label: "车型" },
+  { value: "product", label: "品类" },
   { value: "general", label: "灵感" },
 ]
 
@@ -170,7 +170,7 @@ function createWorkspaceSnapshot({
   input,
   selectedMaterialIds,
   selectedBrand,
-  selectedCarModel,
+  selectedCategory,
   imageThreads,
   activeImageThreadId,
   uploadedReferenceImages,
@@ -186,7 +186,7 @@ function createWorkspaceSnapshot({
   input: string
   selectedMaterialIds: string[]
   selectedBrand: string
-  selectedCarModel: string
+  selectedCategory: string
   imageThreads: AiImageThread[]
   activeImageThreadId: string
   uploadedReferenceImages: Attachment[]
@@ -204,7 +204,7 @@ function createWorkspaceSnapshot({
     input,
     selected_material_ids: selectedMaterialIds,
     brand: selectedBrand,
-    car_model: selectedCarModel,
+    category: selectedCategory,
     image_threads: imageThreads,
     active_image_thread_id: activeImageThreadId,
     uploaded_reference_images: uploadedReferenceImages,
@@ -243,11 +243,11 @@ export default function AiStudioPage() {
   const [creatorNoteSearch, setCreatorNoteSearch] = useState("")
   const [selectedCreatorNotes, setSelectedCreatorNotes] = useState<CreatorAccountSampleNote[]>([])
   const [archivingCreatorNoteIds, setArchivingCreatorNoteIds] = useState<string[]>([])
-  const [vehicles, setVehicles] = useState<VehicleOption[]>([])
+  const [brandCategories, setBrandCategories] = useState<BrandCategoryOption[]>([])
   const [scopeFilter, setScopeFilter] = useState<"all" | MaterialScope>("all")
   const [materialSearch, setMaterialSearch] = useState("")
   const [selectedBrand, setSelectedBrand] = useState("")
-  const [selectedCarModel, setSelectedCarModel] = useState("")
+  const [selectedCategory, setSelectedCarModel] = useState("")
   const [materials, setMaterials] = useState<Material[]>([])
   const [materialsLoading, setMaterialsLoading] = useState(true)
   const [selectedMaterials, setSelectedMaterials] = useState<Material[]>([])
@@ -292,7 +292,7 @@ export default function AiStudioPage() {
       .then(([statusResult, optionsResult, accountResults]) => {
         if (!active) return
         setStatus(statusResult)
-        setVehicles(optionsResult.vehicles)
+        setBrandCategories(optionsResult.brand_categories)
         setCreatorAccounts(accountResults)
       })
       .catch((error) => {
@@ -373,7 +373,7 @@ export default function AiStudioPage() {
         setScopeFilter(conversation.scope_filter || "all")
         setMaterialSearch(conversation.material_search || "")
         setSelectedBrand(conversation.brand || "")
-        setSelectedCarModel(conversation.car_model || "")
+        setSelectedCarModel(conversation.category || "")
         setImageThreads(restoredThreads)
         setActiveImageThreadId(restoredActiveThreadId)
         setUploadedReferenceImages(conversation.uploaded_reference_images || [])
@@ -399,7 +399,7 @@ export default function AiStudioPage() {
           input: "",
           selectedMaterialIds: restoredMaterials.map((material) => material.id),
           selectedBrand: conversation.brand || "",
-          selectedCarModel: conversation.car_model || "",
+          selectedCategory: conversation.category || "",
           imageThreads: restoredThreads,
           activeImageThreadId: restoredActiveThreadId,
           uploadedReferenceImages: conversation.uploaded_reference_images || [],
@@ -424,7 +424,7 @@ export default function AiStudioPage() {
       q: deferredSearch.trim() || undefined,
       material_scope: scopeFilter === "all" ? undefined : scopeFilter,
       brand: selectedBrand || undefined,
-      car_model: selectedCarModel || undefined,
+      category: selectedCategory || undefined,
       page: 1,
       page_size: 500,
       sort: "created_at",
@@ -445,7 +445,7 @@ export default function AiStudioPage() {
     return () => {
       active = false
     }
-  }, [deferredSearch, scopeFilter, selectedBrand, selectedCarModel])
+  }, [deferredSearch, scopeFilter, selectedBrand, selectedCategory])
 
   useEffect(() => {
     if (!selectedCreatorAccountId) return
@@ -477,14 +477,14 @@ export default function AiStudioPage() {
   }, [deferredCreatorNoteSearch, selectedCreatorAccountId])
 
   const brands = useMemo(
-    () => Array.from(new Set(vehicles.map((vehicle) => vehicle.brand))),
-    [vehicles]
+    () => Array.from(new Set(brandCategories.map((item) => item.brand))),
+    [brandCategories]
   )
   const carModels = useMemo(
-    () => Array.from(new Set(vehicles
-      .filter((vehicle) => !selectedBrand || vehicle.brand === selectedBrand)
-      .map((vehicle) => vehicle.car_model))),
-    [vehicles, selectedBrand]
+    () => Array.from(new Set(brandCategories
+      .filter((item) => !selectedBrand || item.brand === selectedBrand)
+      .map((item) => item.category))),
+    [brandCategories, selectedBrand]
   )
   const selectedMaterialIds = useMemo(
     () => selectedMaterials.map((material) => material.id),
@@ -588,7 +588,7 @@ export default function AiStudioPage() {
     input,
     selectedMaterialIds,
     selectedBrand,
-    selectedCarModel,
+    selectedCategory,
     imageThreads,
     activeImageThreadId,
     uploadedReferenceImages,
@@ -604,7 +604,7 @@ export default function AiStudioPage() {
     input,
     selectedMaterialIds,
     selectedBrand,
-    selectedCarModel,
+    selectedCategory,
     imageThreads,
     activeImageThreadId,
     uploadedReferenceImages,
@@ -912,7 +912,7 @@ export default function AiStudioPage() {
         task,
         creator_account_id: selectedCreatorAccountId || undefined,
         brand: selectedBrand,
-        car_model: selectedCarModel,
+        category: selectedCategory,
         material_ids: selectedMaterialIds,
         creator_note_ids: selectedCreatorNoteIds,
         messages: nextMessages,
@@ -949,7 +949,7 @@ export default function AiStudioPage() {
         task: "concept",
         creator_account_id: selectedCreatorAccountId || undefined,
         brand: selectedBrand,
-        car_model: selectedCarModel,
+        category: selectedCategory,
         material_ids: selectedMaterialIds,
         creator_note_ids: selectedCreatorNoteIds,
         messages: cleanAiMessages(messages),
@@ -1176,7 +1176,7 @@ export default function AiStudioPage() {
               .filter((message) => message.role === "user")
               .map((message) => message.content),
             brand: selectedBrand,
-            car_model: selectedCarModel,
+            category: selectedCategory,
             material_ids: selectedMaterialIds,
             creator_account_id: selectedCreatorAccountId,
             creator_note_ids: selectedCreatorNoteIds,
@@ -1229,7 +1229,7 @@ export default function AiStudioPage() {
         assistant_content: latestAssistant,
         material_ids: selectedMaterialIds,
         brand: selectedBrand || undefined,
-        car_model: selectedCarModel || undefined,
+        category: selectedCategory || undefined,
       })
       setFeedbackSent(true)
     } catch (error) {
@@ -1248,7 +1248,7 @@ export default function AiStudioPage() {
       .map((message) => message.content)
       .join("\n")
     const savedContent = draft.content.trim() || latestAssistant || imageRequirements || "图片创作灵感"
-    const title = draft.title.trim() || noteTitle.trim() || deriveTitle(savedContent, selectedCarModel)
+    const title = draft.title.trim() || noteTitle.trim() || deriveTitle(savedContent, selectedCategory)
     const activeReference = activeImageThread?.selected_references[0] ?? null
     const conversation = {
       version: 6 as const,
@@ -1261,7 +1261,7 @@ export default function AiStudioPage() {
       scope_filter: scopeFilter,
       material_search: materialSearch,
       brand: selectedBrand || null,
-      car_model: selectedCarModel || null,
+      category: selectedCategory || null,
       image_prompt: imagePrompt,
       generated_images: generatedImages,
       image_messages: imageMessages,
@@ -1301,7 +1301,7 @@ export default function AiStudioPage() {
       "AI生成",
       selectedCreatorAccount?.name,
       selectedBrand,
-      selectedCarModel,
+      selectedCategory,
       selectedTask.label,
     ].filter(Boolean)))
     formData.append("attachments", JSON.stringify(retainedAttachments))
@@ -1325,7 +1325,7 @@ export default function AiStudioPage() {
         input,
         selectedMaterialIds,
         selectedBrand,
-        selectedCarModel,
+        selectedCategory,
         imageThreads,
         activeImageThreadId,
         uploadedReferenceImages,
@@ -1427,7 +1427,7 @@ export default function AiStudioPage() {
             <p className="truncate text-xs text-muted-foreground">
               {selectedCreatorAccount ? `${selectedCreatorAccount.name} · ` : ""}
               {selectedMaterialIds.length} 条素材 · {selectedCreatorNoteIds.length} 篇账号旧帖
-              {selectedCarModel ? ` · ${selectedCarModel}` : ""}
+              {selectedCategory ? ` · ${selectedCategory}` : ""}
             </p>
           </div>
         </div>
@@ -1478,7 +1478,7 @@ export default function AiStudioPage() {
                 <Sparkles className="size-5" />
               </span>
               <h2 className="text-sm font-semibold">{selectedTask.label}</h2>
-              <p className="mt-1 max-w-sm text-xs leading-5 text-muted-foreground">先说想法，AI 会逐步确认参考重点、车型、内容目标和带货强度</p>
+              <p className="mt-1 max-w-sm text-xs leading-5 text-muted-foreground">先说想法，AI 会逐步确认参考重点、品类、内容目标和带货强度</p>
             </div>
           ) : messages.map((message, index) => (
             <div
@@ -1598,7 +1598,7 @@ export default function AiStudioPage() {
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
               {selectedCreatorAccount ? `${selectedCreatorAccount.name} · ` : ""}
-              {selectedBrand && selectedCarModel ? `${selectedBrand} · ${selectedCarModel} · ` : ""}
+              {selectedBrand && selectedCategory ? `${selectedBrand} · ${selectedCategory} · ` : ""}
               {selectedMaterialIds.length} 条素材 · {selectedCreatorNoteIds.length} 篇账号旧帖
             </p>
             <Button
@@ -1893,17 +1893,17 @@ export default function AiStudioPage() {
                     </SelectContent>
                   </Select>
                   <Select
-                    value={selectedCarModel || "__all__"}
+                    value={selectedCategory || "__all__"}
                     onValueChange={(value) => {
                       setMaterialsLoading(true)
                       setSelectedCarModel(value === "__all__" ? "" : value)
                     }}
                   >
-                    <SelectTrigger aria-label="筛选车型" className="bg-background shadow-none">
+                    <SelectTrigger aria-label="筛选品类" className="bg-background shadow-none">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__all__">全部车型</SelectItem>
+                      <SelectItem value="__all__">全部品类</SelectItem>
                       {carModels.map((carModel) => <SelectItem key={carModel} value={carModel}>{carModel}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -1957,7 +1957,7 @@ export default function AiStudioPage() {
                         <span className="line-clamp-2 text-sm font-medium leading-5">{material.title}</span>
                         <span className="mt-1 flex flex-wrap gap-1">
                           <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-normal">
-                            {material.material_scope === "vehicle" ? "车型" : "灵感"}
+                            {material.material_scope === "product" ? "品类" : "灵感"}
                           </Badge>
                           {material.content_types.slice(0, 1).map((type) => (
                             <Badge key={type} variant="secondary" className="px-1.5 py-0 text-[10px] font-normal">{type}</Badge>

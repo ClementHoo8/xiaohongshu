@@ -1,17 +1,18 @@
 import type { Attachment, Material, MaterialScope } from "@/lib/api"
 
 export const MATERIAL_SCOPE_LABELS: Record<MaterialScope, string> = {
-  vehicle: "车型相关",
+  product: "品类相关",
   general: "通用灵感",
 }
 
-export const VEHICLE_CONTENT_TYPES = [
-  "用户使用痛点",
+export const PRODUCT_CONTENT_TYPES = [
+  "养宠痛点",
   "专业知识分享",
-  "香味分享",
-  "车型知识",
+  "适口性反馈",
+  "品类知识",
   "产品卖点",
   "用户案例",
+  "喂养场景",
   "竞品种草",
 ]
 
@@ -22,6 +23,9 @@ export const GENERAL_CONTENT_TYPES = [
   "视频灵感",
   "活动素材",
 ]
+
+// 全量选项由两组拼接得出，避免维护多份互相漂移的列表。
+export const CONTENT_TYPES = [...PRODUCT_CONTENT_TYPES, ...GENERAL_CONTENT_TYPES]
 
 export const TITLE_INSPIRATION_TYPES = [
   "痛点型",
@@ -42,7 +46,9 @@ export const SOURCE_TYPE_LABELS: Record<string, string> = {
   douyin: "抖音博主",
   bilibili: "B站内容",
   competitor: "竞品账号",
-  car_group: "车友群",
+  pet_group: "养宠社群",
+  vet: "宠物医生",
+  breeder: "繁育人",
   sales_feedback: "销售反馈",
   wechat_article: "公众号文章",
   other: "其他",
@@ -58,7 +64,7 @@ export function filterMaterials(materials: Material[], query: string) {
       material.summary,
       material.original_content,
       material.brand,
-      material.car_model,
+      material.category,
       material.author,
       MATERIAL_SCOPE_LABELS[material.material_scope],
       SOURCE_TYPE_LABELS[material.source_type],

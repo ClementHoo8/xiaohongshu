@@ -151,8 +151,8 @@ function DailyMaterialNotificationSession() {
                     <span className="flex flex-wrap items-center gap-1.5">
                       <Badge variant="secondary" className="font-normal">{SOURCE_TYPE_LABELS[material.source_type] || material.source_type}</Badge>
                       <span className="text-xs text-muted-foreground">
-                        {material.material_scope === "vehicle"
-                          ? [material.brand, material.car_model].filter(Boolean).join(" · ")
+                        {material.material_scope === "product"
+                          ? [material.brand, material.category].filter(Boolean).join(" · ")
                           : MATERIAL_SCOPE_LABELS.general}
                       </span>
                     </span>

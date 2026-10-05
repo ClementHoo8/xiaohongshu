@@ -140,7 +140,7 @@ async def export_creation(
         "title": title,
         "content": content,
         "brand": conversation.get("brand"),
-        "car_model": conversation.get("car_model"),
+        "category": conversation.get("category"),
         "cover_asset_path": cover_path if cover_path in ordered_paths else None,
         "images": [attachment for attachment, _ in selected_attachments],
         "exported_from_creation_id": str(creation.id),

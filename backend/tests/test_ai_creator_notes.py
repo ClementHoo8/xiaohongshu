@@ -34,7 +34,7 @@ class AiCreatorNoteContextTests(unittest.TestCase):
                 collected_count=8,
                 comment_count=3,
                 share_count=1,
-                tags=["车载香氛"],
+                tags=["宠物零食"],
                 published_at=datetime(2026, 7, 20, 10, 30),
             ),
             CreatorAccountNote(
@@ -60,7 +60,7 @@ class AiCreatorNoteContextTests(unittest.TestCase):
         self.assertIn("最高综合互动：36（《第二篇》）", context)
         self.assertIn("正文：第二篇正文", context)
         self.assertIn("赞 20、藏 8、评 3、转 1", context)
-        self.assertIn("标签：车载香氛", context)
+        self.assertIn("标签：宠物零食", context)
 
     def test_image_prompt_includes_creator_note_text_tags_and_metrics(self):
         context = build_creator_note_context([
@@ -71,7 +71,7 @@ class AiCreatorNoteContextTests(unittest.TestCase):
                 collected_count=21,
                 comment_count=9,
                 share_count=5,
-                tags=["车载香氛", "夏日用车"],
+                tags=["宠物零食", "夏季喂养"],
             )
         ])
 
@@ -87,7 +87,7 @@ class AiCreatorNoteContextTests(unittest.TestCase):
         self.assertIn("所选账号旧帖的文字、标签与公开表现数据", prompt)
         self.assertIn("最高点赞：88", prompt)
         self.assertIn("正文：完整正文内容", prompt)
-        self.assertIn("标签：车载香氛、夏日用车", prompt)
+        self.assertIn("标签：宠物零食、夏季喂养", prompt)
         self.assertIn("赞 88、藏 21、评 9、转 5", prompt)
 
     @patch.object(ai_router, "AsyncOpenAI")

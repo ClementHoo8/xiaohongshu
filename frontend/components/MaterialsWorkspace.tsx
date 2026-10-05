@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { CarFront, ChevronLeft, ChevronRight, Lightbulb, Plus } from "lucide-react"
+import { ChevronLeft, ChevronRight, Lightbulb, PawPrint, Plus } from "lucide-react"
 import { AddMaterialModal } from "@/components/AddMaterialModal"
 import { CollectionContent } from "@/components/CollectionContent"
 import { FilterPanel, type FilterState } from "@/components/FilterPanel"
@@ -30,15 +30,15 @@ import {
   type MaterialScope,
   type Options,
 } from "@/lib/api"
-import { GENERAL_CONTENT_TYPES, VEHICLE_CONTENT_TYPES } from "@/lib/materials"
+import { GENERAL_CONTENT_TYPES, PRODUCT_CONTENT_TYPES } from "@/lib/materials"
 import { cn } from "@/lib/utils"
 
 const PAGE_SIZE = 18
-const LAST_VEHICLE_KEY = "ruby-rain-last-vehicle"
+const LAST_CATEGORY_KEY = "ruby-rain-last-category"
 
 const EMPTY_FILTERS: FilterState = {
   brand: "",
-  car_model: "",
+  category: "",
   source_type: "",
   content_types: [],
   is_favorite: null,
@@ -46,12 +46,12 @@ const EMPTY_FILTERS: FilterState = {
 
 const EMPTY_OPTIONS: Options = {
   brands: [],
-  car_models: [],
-  vehicles: [],
+  categories: [],
+  brand_categories: [],
   source_types: [],
   content_types: [],
   content_type_groups: {
-    vehicle: VEHICLE_CONTENT_TYPES,
+    product: PRODUCT_CONTENT_TYPES,
     general: GENERAL_CONTENT_TYPES,
   },
 }
@@ -63,17 +63,17 @@ interface MaterialsWorkspaceProps {
 }
 
 export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
-  const isVehicleWorkspace = scope === "vehicle"
+  const isProductWorkspace = scope === "product"
   const [materials, setMaterials] = useState<Material[]>([])
   const [options, setOptions] = useState<Options>(EMPTY_OPTIONS)
   const [facets, setFacets] = useState<MaterialFacets>(EMPTY_FACETS)
   const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(!isVehicleWorkspace)
+  const [loading, setLoading] = useState(!isProductWorkspace)
   const [viewMode, setViewMode] = useState<"table" | "card">("card")
   const [search, setSearch] = useState("")
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS)
   const [selectedBrand, setSelectedBrand] = useState("")
-  const [selectedCarModel, setSelectedCarModel] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null)
@@ -81,19 +81,19 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
   const [refreshKey, setRefreshKey] = useState(0)
 
   const contentTypes = options.content_type_groups[scope] ?? (
-    isVehicleWorkspace ? VEHICLE_CONTENT_TYPES : GENERAL_CONTENT_TYPES
+    isProductWorkspace ? PRODUCT_CONTENT_TYPES : GENERAL_CONTENT_TYPES
   )
   const brands = useMemo(
-    () => Array.from(new Set(options.vehicles.map((vehicle) => vehicle.brand))),
-    [options.vehicles]
+    () => Array.from(new Set(options.brand_categories.map((item) => item.brand))),
+    [options.brand_categories]
   )
-  const carModels = useMemo(
-    () => options.vehicles
-      .filter((vehicle) => vehicle.brand === selectedBrand)
-      .map((vehicle) => vehicle.car_model),
-    [options.vehicles, selectedBrand]
+  const categories = useMemo(
+    () => options.brand_categories
+      .filter((item) => item.brand === selectedBrand)
+      .map((item) => item.category),
+    [options.brand_categories, selectedBrand]
   )
-  const canLoadMaterials = !isVehicleWorkspace || Boolean(selectedBrand && selectedCarModel)
+  const canLoadMaterials = !isProductWorkspace || Boolean(selectedBrand && selectedCategory)
 
   useEffect(() => {
     let active = true
@@ -103,22 +103,22 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
         if (!active) return
         setOptions(result)
 
-        if (isVehicleWorkspace) {
+        if (isProductWorkspace) {
           try {
-            const saved = JSON.parse(localStorage.getItem(LAST_VEHICLE_KEY) ?? "null") as {
+            const saved = JSON.parse(localStorage.getItem(LAST_CATEGORY_KEY) ?? "null") as {
               brand?: string
-              car_model?: string
+              category?: string
             } | null
-            const exists = result.vehicles.some(
-              (vehicle) => vehicle.brand === saved?.brand && vehicle.car_model === saved?.car_model
+            const exists = result.brand_categories.some(
+              (item) => item.brand === saved?.brand && item.category === saved?.category
             )
-            if (exists && saved?.brand && saved.car_model) {
+            if (exists && saved?.brand && saved.category) {
               setLoading(true)
               setSelectedBrand(saved.brand)
-              setSelectedCarModel(saved.car_model)
+              setSelectedCategory(saved.category)
             }
           } catch {
-            localStorage.removeItem(LAST_VEHICLE_KEY)
+            localStorage.removeItem(LAST_CATEGORY_KEY)
           }
         }
       })
@@ -127,7 +127,7 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
     return () => {
       active = false
     }
-  }, [isVehicleWorkspace, refreshKey])
+  }, [isProductWorkspace, refreshKey])
 
   useEffect(() => {
     if (!canLoadMaterials) {
@@ -139,8 +139,8 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
       getMaterials({
         q: search || undefined,
         material_scope: scope,
-        brand: isVehicleWorkspace ? selectedBrand : undefined,
-        car_model: isVehicleWorkspace ? selectedCarModel : undefined,
+        brand: isProductWorkspace ? selectedBrand : undefined,
+        category: isProductWorkspace ? selectedCategory : undefined,
         source_type: filters.source_type || undefined,
         content_types: filters.content_types.length > 0 ? filters.content_types : undefined,
         is_favorite: filters.is_favorite ?? undefined,
@@ -151,8 +151,8 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
       }),
       getMaterialFacets({
         material_scope: scope,
-        brand: isVehicleWorkspace ? selectedBrand : undefined,
-        car_model: isVehicleWorkspace ? selectedCarModel : undefined,
+        brand: isProductWorkspace ? selectedBrand : undefined,
+        category: isProductWorkspace ? selectedCategory : undefined,
       }),
     ])
       .then(([result, facetResult]) => {
@@ -172,13 +172,13 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
   }, [
     canLoadMaterials,
     filters,
-    isVehicleWorkspace,
+    isProductWorkspace,
     page,
     refreshKey,
     scope,
     search,
     selectedBrand,
-    selectedCarModel,
+    selectedCategory,
   ])
 
   const openAddModal = () => {
@@ -186,13 +186,13 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
     setAddModalOpen(true)
   }
 
-  const handleVehicleChange = (brand: string, carModel: string) => {
+  const handleCategoryChange = (brand: string, category: string) => {
     setLoading(true)
     setSelectedBrand(brand)
-    setSelectedCarModel(carModel)
+    setSelectedCategory(category)
     setFilters(EMPTY_FILTERS)
     setPage(1)
-    localStorage.setItem(LAST_VEHICLE_KEY, JSON.stringify({ brand, car_model: carModel }))
+    localStorage.setItem(LAST_CATEGORY_KEY, JSON.stringify({ brand, category }))
   }
 
   const handleSearchChange = (query: string) => {
@@ -247,8 +247,8 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
     if (editingMaterial) {
       const updated = await updateMaterial(editingMaterial.id, formData)
       if (updated.material_scope !== scope || (
-        isVehicleWorkspace && (
-          updated.brand !== selectedBrand || updated.car_model !== selectedCarModel
+        isProductWorkspace && (
+          updated.brand !== selectedBrand || updated.category !== selectedCategory
         )
       )) {
         setMaterials((current) => current.filter((material) => material.id !== updated.id))
@@ -259,8 +259,8 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
       }
     } else {
       const created = await createMaterial(formData)
-      if (isVehicleWorkspace && created.material_scope === "vehicle" && created.brand && created.car_model) {
-        handleVehicleChange(created.brand, created.car_model)
+      if (isProductWorkspace && created.material_scope === "product" && created.brand && created.category) {
+        handleCategoryChange(created.brand, created.category)
       }
     }
 
@@ -270,7 +270,7 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
   const activeContentType = filters.content_types[0] ?? ""
-  const isTitleInspirationView = !isVehicleWorkspace && activeContentType === "标题灵感"
+  const isTitleInspirationView = !isProductWorkspace && activeContentType === "标题灵感"
 
   return (
     <div className="min-h-screen">
@@ -280,24 +280,24 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <div className="mb-1 flex items-center gap-2 text-xs font-medium text-primary">
-              {isVehicleWorkspace ? <CarFront className="size-3.5" /> : <Lightbulb className="size-3.5" />}
-              {isVehicleWorkspace ? "车型创作工作台" : "通用创作参考"}
+              {isProductWorkspace ? <PawPrint className="size-3.5" /> : <Lightbulb className="size-3.5" />}
+              {isProductWorkspace ? "品类创作工作台" : "通用创作参考"}
             </div>
             <h1 className="text-2xl font-semibold">
-              {isVehicleWorkspace ? "车型素材" : "灵感中心"}
+              {isProductWorkspace ? "产品素材" : "灵感中心"}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {isVehicleWorkspace && selectedCarModel
-                ? `${selectedBrand} · ${selectedCarModel}，共 ${facets.total} 条素材`
-                : !isVehicleWorkspace
+              {isProductWorkspace && selectedCategory
+                ? `${selectedBrand} · ${selectedCategory}，共 ${facets.total} 条素材`
+                : !isProductWorkspace
                   ? `共收录 ${facets.total} 条通用灵感`
-                  : "选择车型后开始查找资料"}
+                  : "选择品类后开始查找资料"}
             </p>
           </div>
         </div>
 
-        {isVehicleWorkspace && (
-          <section className="mb-6 flex flex-col gap-4 border-y bg-card px-4 py-4 sm:flex-row sm:items-end sm:px-5" aria-label="选择车型">
+        {isProductWorkspace && (
+          <section className="mb-6 flex flex-col gap-4 border-y bg-card px-4 py-4 sm:flex-row sm:items-end sm:px-5" aria-label="选择品类">
             <div className="grid flex-1 gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">品牌</label>
@@ -305,7 +305,7 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
                   value={selectedBrand || undefined}
                   onValueChange={(brand) => {
                     setSelectedBrand(brand)
-                    setSelectedCarModel("")
+                    setSelectedCategory("")
                     setLoading(false)
                     setFilters(EMPTY_FILTERS)
                     setPage(1)
@@ -321,24 +321,24 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">车型</label>
+                <label className="text-xs font-medium text-muted-foreground">品类</label>
                 <Select
-                  value={selectedCarModel || undefined}
-                  onValueChange={(carModel) => handleVehicleChange(selectedBrand, carModel)}
-                  disabled={!selectedBrand || carModels.length === 0}
+                  value={selectedCategory || undefined}
+                  onValueChange={(category) => handleCategoryChange(selectedBrand, category)}
+                  disabled={!selectedBrand || categories.length === 0}
                 >
-                  <SelectTrigger className="h-10 bg-background shadow-none" aria-label="选择车型">
-                    <SelectValue placeholder={!selectedBrand ? "请先选择品牌" : carModels.length === 0 ? "暂无车型" : "选择车型"} />
+                  <SelectTrigger className="h-10 bg-background shadow-none" aria-label="选择品类">
+                    <SelectValue placeholder={!selectedBrand ? "请先选择品牌" : categories.length === 0 ? "暂无品类" : "选择品类"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {carModels.map((carModel) => <SelectItem key={carModel} value={carModel}>{carModel}</SelectItem>)}
+                    {categories.map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <Button variant="outline" className="h-10 shrink-0" onClick={openAddModal}>
               <Plus />
-              添加车型素材
+              添加品类素材
             </Button>
           </section>
         )}
@@ -383,7 +383,7 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
                 filters={filters}
                 onFilterChange={handleFilterChange}
                 options={{ ...options, content_types: contentTypes }}
-                showVehicleFilters={false}
+                showCategoryFilters={false}
                 showContentTypes={false}
                 className="lg:sticky lg:top-24"
               />
@@ -457,15 +457,15 @@ export function MaterialsWorkspace({ scope }: MaterialsWorkspaceProps) {
         ) : (
           <section className="flex min-h-[360px] flex-col items-center justify-center border-y border-dashed px-6 text-center">
             <span className="mb-4 grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
-              <CarFront className="size-5" />
+              <PawPrint className="size-5" />
             </span>
-            <h2 className="text-base font-semibold">先选择一个车型</h2>
+            <h2 className="text-base font-semibold">先选择一个品类</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {brands.length > 0 ? "从上方选择品牌和车型" : "添加第一条车型素材后，这里会生成车型列表"}
+              {brands.length > 0 ? "从上方选择品牌和品类" : "添加第一条品类素材后，这里会生成品类列表"}
             </p>
             <Button className="mt-5" onClick={openAddModal}>
               <Plus />
-              添加车型素材
+              添加品类素材
             </Button>
           </section>
         )}

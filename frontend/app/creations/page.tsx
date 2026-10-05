@@ -199,9 +199,9 @@ export default function CreationsPage() {
                       <div className="flex flex-wrap gap-1.5">
                         <Badge variant="secondary">{taskLabel}</Badge>
                         {finalDraft?.content && <Badge variant="outline">已成稿</Badge>}
-                        {creation.ai_conversation.brand && creation.ai_conversation.car_model && (
+                        {creation.ai_conversation.brand && creation.ai_conversation.category && (
                           <Badge variant="outline">
-                            {creation.ai_conversation.brand} · {creation.ai_conversation.car_model}
+                            {creation.ai_conversation.brand} · {creation.ai_conversation.category}
                           </Badge>
                         )}
                       </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, CarFront, CheckCircle2, ClipboardCheck, Clock3, FileText, Heart, Lightbulb, LoaderCircle, MessageSquarePlus, Plus, Search, Sparkles, UserRound } from "lucide-react"
+import { BarChart3, CheckCircle2, ClipboardCheck, Clock3, FileText, Heart, Lightbulb, LoaderCircle, MessageSquarePlus, PawPrint, Plus, Search, Sparkles, UserRound } from "lucide-react"
 import { useAuth } from "@/components/AuthProvider"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,7 +26,7 @@ interface HeaderProps {
 }
 
 const navigation = [
-  { href: "/", label: "车型素材", icon: CarFront },
+  { href: "/", label: "产品素材", icon: PawPrint },
   { href: "/inspiration", label: "灵感中心", icon: Lightbulb },
   { href: "/ai", label: "AI 创作", icon: Sparkles },
   { href: "/creator-accounts", label: "账号情报", icon: BarChart3 },
@@ -107,7 +107,7 @@ export function Header({
           </span>
           <span className="hidden leading-tight sm:block">
             <strong className="block text-sm font-semibold">Ruby Rain</strong>
-            <span className="block text-[11px] text-muted-foreground">内容素材库</span>
+            <span className="block text-[11px] text-muted-foreground">宠物零食素材库</span>
           </span>
         </Link>
 
@@ -148,7 +148,7 @@ export function Header({
               <Input
                 type="search"
                 aria-label="搜索素材"
-                placeholder="搜索标题、车型、作者或标签"
+                placeholder="搜索标题、品类、作者或标签"
                 value={searchValue}
                 onChange={(event) => onSearch(event.target.value)}
                 className="h-10 bg-background pl-9 shadow-none"

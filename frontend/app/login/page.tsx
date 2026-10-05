@@ -43,12 +43,12 @@ export default function LoginPage() {
           <span className="grid size-11 place-items-center rounded-md bg-primary text-lg font-semibold text-primary-foreground">R</span>
           <div>
             <h1 className="text-base font-semibold">Ruby Rain</h1>
-            <p className="text-xs text-background/65">内容素材与 AI 创作平台</p>
+            <p className="text-xs text-background/65">宠物零食素材与 AI 创作平台</p>
           </div>
         </div>
         <div className="mt-auto max-w-sm border-t border-background/20 pt-6">
           <p className="text-2xl font-semibold leading-9">团队共享素材，个人沉淀创作。</p>
-          <p className="mt-3 text-sm leading-6 text-background/65">车型资料与灵感统一协作，收藏、AI 对话和创作记录归属个人账号。</p>
+          <p className="mt-3 text-sm leading-6 text-background/65">品类资料与灵感统一协作，收藏、AI 对话和创作记录归属个人账号。</p>
         </div>
       </section>
 
@@ -58,7 +58,7 @@ export default function LoginPage() {
             <span className="grid size-10 place-items-center rounded-md bg-primary font-semibold text-primary-foreground">R</span>
             <div>
               <h1 className="text-sm font-semibold">Ruby Rain</h1>
-              <p className="text-xs text-muted-foreground">内容素材库</p>
+              <p className="text-xs text-muted-foreground">宠物零食素材库</p>
             </div>
           </div>
 

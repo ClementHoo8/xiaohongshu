@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils"
 
 export interface FilterState {
   brand: string
-  car_model: string
+  category: string
   source_type: string
   content_types: string[]
   is_favorite: boolean | null
@@ -26,12 +26,12 @@ interface FilterPanelProps {
   onFilterChange: (filters: FilterState) => void
   options: {
     brands: string[]
-    car_models: string[]
+    categories: string[]
     source_types: [string, string][]
     content_types: string[]
   }
   className?: string
-  showVehicleFilters?: boolean
+  showCategoryFilters?: boolean
   showContentTypes?: boolean
 }
 
@@ -42,10 +42,10 @@ export function FilterPanel({
   onFilterChange,
   options,
   className,
-  showVehicleFilters = true,
+  showCategoryFilters = true,
   showContentTypes = true,
 }: FilterPanelProps) {
-  const handleSelect = (key: "brand" | "car_model" | "source_type", value: string) => {
+  const handleSelect = (key: "brand" | "category" | "source_type", value: string) => {
     onFilterChange({ ...filters, [key]: value === ALL_VALUE ? "" : value })
   }
 
@@ -59,7 +59,7 @@ export function FilterPanel({
   const clearFilters = () => {
     onFilterChange({
       brand: "",
-      car_model: "",
+      category: "",
       source_type: "",
       content_types: [],
       is_favorite: null,
@@ -68,7 +68,7 @@ export function FilterPanel({
 
   const activeCount = [
     filters.brand,
-    filters.car_model,
+    filters.category,
     filters.source_type,
     ...filters.content_types,
     filters.is_favorite === true ? "favorite" : "",
@@ -101,8 +101,8 @@ export function FilterPanel({
         )}
       </div>
 
-      <div className={cn("grid gap-4 pt-4 lg:grid-cols-1", showVehicleFilters && "sm:grid-cols-3")}>
-        {showVehicleFilters && (
+      <div className={cn("grid gap-4 pt-4 lg:grid-cols-1", showCategoryFilters && "sm:grid-cols-3")}>
+        {showCategoryFilters && (
           <>
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">品牌</Label>
@@ -120,15 +120,15 @@ export function FilterPanel({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">车型</Label>
-              <Select value={filters.car_model || ALL_VALUE} onValueChange={(value) => handleSelect("car_model", value)}>
+              <Label className="text-xs text-muted-foreground">品类</Label>
+              <Select value={filters.category || ALL_VALUE} onValueChange={(value) => handleSelect("category", value)}>
                 <SelectTrigger className="w-full bg-background shadow-none">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={ALL_VALUE}>全部车型</SelectItem>
-                  {options.car_models.map((model) => (
-                    <SelectItem key={model} value={model}>{model}</SelectItem>
+                  <SelectItem value={ALL_VALUE}>全部品类</SelectItem>
+                  {options.categories.map((item) => (
+                    <SelectItem key={item} value={item}>{item}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

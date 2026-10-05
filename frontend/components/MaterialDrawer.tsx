@@ -137,7 +137,7 @@ export function MaterialDrawer({
                   </Badge>
                   <Badge variant="secondary">{MATERIAL_SCOPE_LABELS[material.material_scope]}</Badge>
                   {material.brand && <Badge variant="outline">{material.brand}</Badge>}
-                  {material.car_model && <Badge variant="outline">{material.car_model}</Badge>}
+                  {material.category && <Badge variant="outline">{material.category}</Badge>}
                 </div>
                 <h1 className="text-xl font-semibold leading-8">{material.title}</h1>
                 {material.author && <p className="mt-2 text-sm text-muted-foreground">来自 @{material.author}</p>}

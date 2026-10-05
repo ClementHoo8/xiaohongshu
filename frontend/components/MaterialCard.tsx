@@ -141,7 +141,7 @@ export function MaterialCard({ material, onToggleFavorite, onClick }: MaterialCa
           <span className="min-w-0 flex-1 truncate">
             {material.material_scope === "general"
               ? MATERIAL_SCOPE_LABELS.general
-              : [material.brand, material.car_model].filter(Boolean).join(" · ")}
+              : [material.brand, material.category].filter(Boolean).join(" · ")}
           </span>
           {material.attachments.length > 0 && (
             <span className="flex shrink-0 items-center gap-1" title={`${material.attachments.length} 个附件`}>

@@ -2,14 +2,14 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { AlertCircle, CarFront, CheckCircle2, Download, FileText, ImageIcon, Lightbulb, LoaderCircle, MessageCircle, Video, X, ChevronRight, ChevronLeft, Upload, Plus, Trash2 } from "lucide-react"
+import { AlertCircle, CheckCircle2, Download, FileText, ImageIcon, Lightbulb, LoaderCircle, MessageCircle, PawPrint, Video, X, ChevronRight, ChevronLeft, Upload, Plus, Trash2 } from "lucide-react"
 import { importXiaohongshuMaterial, type Material, type MaterialScope, type MaterialSourceMetadata } from "@/lib/api"
 import {
   GENERAL_CONTENT_TYPES,
   isImageAttachment,
   isVideoAttachment,
+  PRODUCT_CONTENT_TYPES,
   TITLE_INSPIRATION_TYPES,
-  VEHICLE_CONTENT_TYPES,
 } from "@/lib/materials"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,7 +27,9 @@ const SOURCE_TYPES = [
   { value: "douyin", label: "抖音博主" },
   { value: "bilibili", label: "B站内容" },
   { value: "competitor", label: "竞品账号" },
-  { value: "car_group", label: "车友群" },
+  { value: "pet_group", label: "养宠社群" },
+  { value: "vet", label: "宠物医生" },
+  { value: "breeder", label: "繁育人" },
   { value: "sales_feedback", label: "销售反馈" },
   { value: "wechat_article", label: "公众号文章" },
   { value: "other", label: "其他" },
@@ -77,7 +79,7 @@ export function AddMaterialModal({
   const [sourceType, setSourceType] = useState(editingMaterial?.source_type ?? "")
   const [title, setTitle] = useState(editingMaterial?.title ?? "")
   const [brand, setBrand] = useState(editingMaterial?.brand ?? "")
-  const [carModel, setCarModel] = useState(editingMaterial?.car_model ?? "")
+  const [category, setCategory] = useState(editingMaterial?.category ?? "")
   const [author, setAuthor] = useState(editingMaterial?.author ?? "")
   const [sourceUrl, setSourceUrl] = useState(editingMaterial?.source_url ?? "")
   const [summary, setSummary] = useState(editingMaterial?.summary ?? "")
@@ -97,7 +99,7 @@ export function AddMaterialModal({
   const [error, setError] = useState("")
   const availableContentTypes = materialScope === "general"
     ? GENERAL_CONTENT_TYPES
-    : VEHICLE_CONTENT_TYPES
+    : PRODUCT_CONTENT_TYPES
   const displayedContentTypes = [
     ...availableContentTypes,
     ...contentTypes.filter((type) => !availableContentTypes.includes(type)),
@@ -212,9 +214,9 @@ export function AddMaterialModal({
       formData.append("title", title)
       formData.append("material_scope", materialScope)
       formData.append("source_type", sourceType)
-      if (materialScope === "vehicle") {
+      if (materialScope === "product") {
         formData.append("brand", brand)
-        formData.append("car_model", carModel)
+        formData.append("category", category)
       }
       if (author) formData.append("author", author)
       if (sourceUrl) formData.append("source_url", sourceUrl)
@@ -281,17 +283,17 @@ export function AddMaterialModal({
               <div className="grid gap-3 sm:grid-cols-2">
                 <button
                   type="button"
-                  onClick={() => handleScopeChange("vehicle")}
+                  onClick={() => handleScopeChange("product")}
                   className={cn(
                     "min-h-32 rounded-md border p-4 text-left transition-colors",
-                    materialScope === "vehicle"
+                    materialScope === "product"
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-input hover:bg-muted/40"
                   )}
                 >
-                  <CarFront className={cn("mb-4 size-6", materialScope === "vehicle" ? "text-primary" : "text-muted-foreground")} />
-                  <span className="block text-sm font-semibold">车型相关素材</span>
-                  <span className="mt-1 block text-xs leading-5 text-muted-foreground">按品牌和车型归档用户痛点、产品卖点、车型知识等资料</span>
+                  <PawPrint className={cn("mb-4 size-6", materialScope === "product" ? "text-primary" : "text-muted-foreground")} />
+                  <span className="block text-sm font-semibold">品类相关素材</span>
+                  <span className="mt-1 block text-xs leading-5 text-muted-foreground">按品牌和品类归档养宠痛点、产品卖点、品类知识等资料</span>
                 </button>
                 <button
                   type="button"
@@ -392,7 +394,7 @@ export function AddMaterialModal({
                     className="mt-1"
                   />
                 </div>
-                {materialScope === "vehicle" && (
+                {materialScope === "product" && (
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
                       <Label htmlFor="brand">品牌 *</Label>
@@ -400,17 +402,17 @@ export function AddMaterialModal({
                         id="brand"
                         value={brand}
                         onChange={(e) => setBrand(e.target.value)}
-                        placeholder="如：宝马"
+                        placeholder="如：麦富迪"
                         className="mt-1"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="carModel">车型 *</Label>
+                      <Label htmlFor="category">品类 *</Label>
                       <Input
-                        id="carModel"
-                        value={carModel}
-                        onChange={(e) => setCarModel(e.target.value)}
-                        placeholder="如：宝马3系"
+                        id="category"
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        placeholder="如：冻干 / 猫条 / 鲜食"
                         className="mt-1"
                       />
                     </div>
@@ -704,7 +706,7 @@ export function AddMaterialModal({
               disabled={
                 (step === 1 && !materialScope) ||
                 (step === 2 && !sourceType) ||
-                (step === 3 && (!title.trim() || (materialScope === "vehicle" && (!brand.trim() || !carModel.trim()))))
+                (step === 3 && (!title.trim() || (materialScope === "product" && (!brand.trim() || !category.trim()))))
               }
               className="gap-2"
             >

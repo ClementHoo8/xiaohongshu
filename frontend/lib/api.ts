@@ -1,6 +1,6 @@
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "")
 
-export type MaterialScope = "vehicle" | "general"
+export type MaterialScope = "product" | "general"
 
 export class ApiError extends Error {
   status: number
@@ -798,7 +798,7 @@ export interface Material {
   title: string
   material_scope: MaterialScope
   brand: string | null
-  car_model: string | null
+  category: string | null
   source_type: string
   source_platform: string | null
   author: string | null
@@ -903,16 +903,16 @@ export interface MaterialFacets {
 
 export interface Options {
   brands: string[]
-  car_models: string[]
-  vehicles: VehicleOption[]
+  categories: string[]
+  brand_categories: BrandCategoryOption[]
   source_types: [string, string][]
   content_types: string[]
   content_type_groups: Record<MaterialScope, string[]>
 }
 
-export interface VehicleOption {
+export interface BrandCategoryOption {
   brand: string
-  car_model: string
+  category: string
 }
 
 export type AiTask = "concept" | "title" | "note" | "video" | "rewrite"
@@ -1042,7 +1042,7 @@ export interface AiConversation {
   scope_filter: "all" | MaterialScope
   material_search: string
   brand: string | null
-  car_model: string | null
+  category: string | null
   image_prompt: string
   generated_images: Attachment[]
   image_messages?: AiImageMessage[]
@@ -1073,7 +1073,7 @@ export interface AiChatRequest {
   task: AiTask
   creator_account_id?: string
   brand?: string
-  car_model?: string
+  category?: string
   material_ids: string[]
   creator_note_ids?: string[]
   messages: AiMessage[]
@@ -1089,7 +1089,7 @@ function normalizeAiChatRequest(payload: AiChatRequest): AiChatRequest {
     ...payload,
     creator_account_id: payload.creator_account_id || undefined,
     brand: payload.brand?.trim().slice(0, 200),
-    car_model: payload.car_model?.trim().slice(0, 200),
+    category: payload.category?.trim().slice(0, 200),
     material_ids: payload.material_ids.slice(0, 12),
     creator_note_ids: payload.creator_note_ids?.slice(0, 20),
     messages,
@@ -1102,7 +1102,7 @@ export interface AiImageRequest {
   reference_attachments: Attachment[]
   history?: string[]
   brand?: string
-  car_model?: string
+  category?: string
   material_ids: string[]
   creator_account_id?: string
   creator_note_ids?: string[]
@@ -1132,14 +1132,14 @@ export interface AiFeedbackRequest {
   assistant_content: string
   material_ids: string[]
   brand?: string
-  car_model?: string
+  category?: string
 }
 
 export async function getMaterials(params: {
   q?: string
   material_scope?: MaterialScope
   brand?: string
-  car_model?: string
+  category?: string
   source_type?: string
   content_types?: string[]
   is_favorite?: boolean
@@ -1152,7 +1152,7 @@ export async function getMaterials(params: {
   if (params.q) sp.set("q", params.q)
   if (params.material_scope) sp.set("material_scope", params.material_scope)
   if (params.brand) sp.set("brand", params.brand)
-  if (params.car_model) sp.set("car_model", params.car_model)
+  if (params.category) sp.set("category", params.category)
   if (params.source_type) sp.set("source_type", params.source_type)
   if (params.content_types?.length) sp.set("content_types", params.content_types.join(","))
   if (params.is_favorite !== undefined) sp.set("is_favorite", String(params.is_favorite))
@@ -1310,11 +1310,11 @@ export async function getOptions(): Promise<Options> {
 export async function getMaterialFacets(params: {
   material_scope: MaterialScope
   brand?: string
-  car_model?: string
+  category?: string
 }): Promise<MaterialFacets> {
   const sp = new URLSearchParams({ material_scope: params.material_scope })
   if (params.brand) sp.set("brand", params.brand)
-  if (params.car_model) sp.set("car_model", params.car_model)
+  if (params.category) sp.set("category", params.category)
 
   const res = await apiFetch(`${API_BASE}/api/materials/facets?${sp.toString()}`)
   if (!res.ok) await throwApiError(res, "素材分类统计加载失败")
@@ -1416,7 +1416,7 @@ export async function generateAiImage(payload: AiImageRequest): Promise<AiImageR
   formData.append("image_history", JSON.stringify(payload.history || []))
   formData.append("reference_attachments", JSON.stringify(payload.reference_attachments))
   if (payload.brand) formData.append("brand", payload.brand)
-  if (payload.car_model) formData.append("car_model", payload.car_model)
+  if (payload.category) formData.append("category", payload.category)
   if (payload.creator_account_id) formData.append("creator_account_id", payload.creator_account_id)
 
   const res = await apiFetch(`${API_BASE}/api/ai/images`, {

@@ -27,16 +27,16 @@ UPLOAD_CHUNK_SIZE = 1024 * 1024
 MAX_UPLOAD_SIZE = 200 * 1024 * 1024
 MAX_UPLOAD_SIZE_MB = MAX_UPLOAD_SIZE // (1024 * 1024)
 VIDEO_EXTENSIONS = {".m4v", ".mov", ".mp4", ".webm"}
-MATERIAL_SCOPES = {"vehicle", "general"}
+MATERIAL_SCOPES = {"product", "general"}
 CHINA_TIMEZONE = timezone(timedelta(hours=8))
 DAILY_NOTIFICATION_LIMIT = 50
 
 
 class MaterialCreate(BaseModel):
     title: str
-    material_scope: str = "vehicle"
+    material_scope: str = "product"
     brand: Optional[str] = None
-    car_model: Optional[str] = None
+    category: Optional[str] = None
     source_type: str
     source_platform: Optional[str] = None
     author: Optional[str] = None
@@ -55,7 +55,7 @@ class MaterialUpdate(BaseModel):
     title: Optional[str] = None
     material_scope: Optional[str] = None
     brand: Optional[str] = None
-    car_model: Optional[str] = None
+    category: Optional[str] = None
     source_type: Optional[str] = None
     source_platform: Optional[str] = None
     author: Optional[str] = None
@@ -87,7 +87,7 @@ def material_to_dict(material, is_favorite: bool = False):
         "title": material.title,
         "material_scope": material.material_scope,
         "brand": material.brand,
-        "car_model": material.car_model,
+        "category": material.category,
         "source_type": material.source_type,
         "source_platform": material.source_platform,
         "author": material.author,
@@ -121,17 +121,17 @@ def utc_iso(value: datetime) -> str:
 def normalize_scope_fields(
     material_scope: str,
     brand: Optional[str],
-    car_model: Optional[str],
+    category: Optional[str],
 ):
     if material_scope not in MATERIAL_SCOPES:
         raise HTTPException(status_code=422, detail="请选择有效的素材范围")
 
     normalized_brand = brand.strip() if brand else None
-    normalized_car_model = car_model.strip() if car_model else None
-    if material_scope == "vehicle":
-        if not normalized_brand or not normalized_car_model:
-            raise HTTPException(status_code=422, detail="车型相关素材必须填写品牌和车型")
-        return normalized_brand, normalized_car_model
+    normalized_category = category.strip() if category else None
+    if material_scope == "product":
+        if not normalized_brand or not normalized_category:
+            raise HTTPException(status_code=422, detail="品类相关素材必须填写品牌和品类")
+        return normalized_brand, normalized_category
 
     return None, None
 
@@ -219,7 +219,7 @@ async def list_materials(
     q: Optional[str] = None,
     material_scope: Optional[str] = None,
     brand: Optional[str] = None,
-    car_model: Optional[str] = None,
+    category: Optional[str] = None,
     source_type: Optional[str] = None,
     content_types: Optional[str] = None,
     is_favorite: Optional[bool] = None,
@@ -239,7 +239,7 @@ async def list_materials(
         q=q,
         material_scope=material_scope,
         brand=brand,
-        car_model=car_model,
+        category=category,
         source_type=source_type,
         content_types=content_types_list,
         is_favorite=is_favorite,
@@ -362,12 +362,12 @@ async def get_options(db: Session = Depends(get_db)):
 async def get_facets(
     material_scope: str,
     brand: Optional[str] = None,
-    car_model: Optional[str] = None,
+    category: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
     if material_scope not in MATERIAL_SCOPES:
         raise HTTPException(status_code=422, detail="请选择有效的素材范围")
-    return crud.get_content_type_counts(db, material_scope, brand, car_model)
+    return crud.get_content_type_counts(db, material_scope, brand, category)
 
 
 @router.get("/{material_id}")
@@ -386,9 +386,9 @@ async def get_material(
 @router.post("")
 async def create_material(
     title: str = Form(...),
-    material_scope: str = Form("vehicle"),
+    material_scope: str = Form("product"),
     brand: Optional[str] = Form(None),
-    car_model: Optional[str] = Form(None),
+    category: Optional[str] = Form(None),
     source_type: str = Form(...),
     source_platform: Optional[str] = Form(None),
     author: Optional[str] = Form(None),
@@ -411,7 +411,7 @@ async def create_material(
     tags_list = parse_json_list(tags, "标签")
     source_metadata_object = parse_json_object(source_metadata, "来源信息")
     attachments_list = parse_json_list(attachments, "附件")
-    brand, car_model = normalize_scope_fields(material_scope, brand, car_model)
+    brand, category = normalize_scope_fields(material_scope, brand, category)
 
     uploaded_attachments = await save_uploads(files)
 
@@ -421,7 +421,7 @@ async def create_material(
         "title": title,
         "material_scope": material_scope,
         "brand": brand,
-        "car_model": car_model,
+        "category": category,
         "source_type": source_type,
         "source_platform": source_platform,
         "author": author,
@@ -449,7 +449,7 @@ async def update_material(
     title: Optional[str] = Form(None),
     material_scope: Optional[str] = Form(None),
     brand: Optional[str] = Form(None),
-    car_model: Optional[str] = Form(None),
+    category: Optional[str] = Form(None),
     source_type: Optional[str] = Form(None),
     source_platform: Optional[str] = Form(None),
     author: Optional[str] = Form(None),
@@ -474,15 +474,15 @@ async def update_material(
     material_data = {}
     effective_scope = material_scope or existing_material.material_scope
     effective_brand = brand if brand is not None else existing_material.brand
-    effective_car_model = car_model if car_model is not None else existing_material.car_model
-    effective_brand, effective_car_model = normalize_scope_fields(
+    effective_category = category if category is not None else existing_material.category
+    effective_brand, effective_category = normalize_scope_fields(
         effective_scope,
         effective_brand,
-        effective_car_model,
+        effective_category,
     )
     material_data["material_scope"] = effective_scope
     material_data["brand"] = effective_brand
-    material_data["car_model"] = effective_car_model
+    material_data["category"] = effective_category
     if title is not None:
         material_data["title"] = title
     if source_type is not None:

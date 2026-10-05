@@ -5,28 +5,14 @@ from sqlalchemy.orm import Session
 from backend.models import Creation, Material, UserFavorite
 
 
-CONTENT_TYPES = [
-    "用户使用痛点",
+PRODUCT_CONTENT_TYPES = [
+    "养宠痛点",
     "专业知识分享",
-    "香味分享",
-    "车型知识",
+    "适口性反馈",
+    "品类知识",
     "产品卖点",
     "用户案例",
-    "笔记灵感",
-    "爆款参考",
-    "竞品种草",
-    "标题灵感",
-    "视频灵感",
-    "活动素材",
-]
-
-VEHICLE_CONTENT_TYPES = [
-    "用户使用痛点",
-    "专业知识分享",
-    "香味分享",
-    "车型知识",
-    "产品卖点",
-    "用户案例",
+    "喂养场景",
     "竞品种草",
 ]
 
@@ -38,6 +24,9 @@ GENERAL_CONTENT_TYPES = [
     "活动素材",
 ]
 
+# 全量选项由两组拼接得出，避免维护三份互相漂移的列表。
+CONTENT_TYPES = PRODUCT_CONTENT_TYPES + GENERAL_CONTENT_TYPES
+
 SOURCE_TYPES = [
     ("self_experience", "自家经验"),
     ("product资料", "产品资料"),
@@ -46,7 +35,9 @@ SOURCE_TYPES = [
     ("douyin", "抖音博主"),
     ("bilibili", "B站内容"),
     ("competitor", "竞品账号"),
-    ("car_group", "车友群"),
+    ("pet_group", "养宠社群"),
+    ("vet", "宠物医生"),
+    ("breeder", "繁育人"),
     ("sales_feedback", "销售反馈"),
     ("wechat_article", "公众号文章"),
     ("other", "其他"),
@@ -61,7 +52,7 @@ def get_materials(
     q: Optional[str] = None,
     material_scope: Optional[str] = None,
     brand: Optional[str] = None,
-    car_model: Optional[str] = None,
+    category: Optional[str] = None,
     source_type: Optional[str] = None,
     content_types: Optional[List[str]] = None,
     is_favorite: Optional[bool] = None,
@@ -80,7 +71,7 @@ def get_materials(
                 Material.summary.ilike(search),
                 Material.author.ilike(search),
                 Material.brand.ilike(search),
-                Material.car_model.ilike(search),
+                Material.category.ilike(search),
             )
         )
 
@@ -90,8 +81,8 @@ def get_materials(
     if brand:
         query = query.filter(Material.brand == brand)
 
-    if car_model:
-        query = query.filter(Material.car_model == car_model)
+    if category:
+        query = query.filter(Material.category == category)
 
     if source_type:
         query = query.filter(Material.source_type == source_type)
@@ -224,30 +215,30 @@ def get_recent(db: Session, limit: int = 30):
 
 def get_options(db: Session):
     brands = db.query(Material.brand).filter(Material.brand.isnot(None)).distinct().all()
-    car_models = db.query(Material.car_model).filter(Material.car_model.isnot(None)).distinct().all()
-    vehicle_rows = (
-        db.query(Material.brand, Material.car_model)
+    categories = db.query(Material.category).filter(Material.category.isnot(None)).distinct().all()
+    product_rows = (
+        db.query(Material.brand, Material.category)
         .filter(
-            Material.material_scope == "vehicle",
+            Material.material_scope == "product",
             Material.brand.isnot(None),
-            Material.car_model.isnot(None),
+            Material.category.isnot(None),
         )
         .distinct()
-        .order_by(Material.brand.asc(), Material.car_model.asc())
+        .order_by(Material.brand.asc(), Material.category.asc())
         .all()
     )
     return {
         "brands": [b[0] for b in brands if b[0]],
-        "car_models": [c[0] for c in car_models if c[0]],
-        "vehicles": [
-            {"brand": brand, "car_model": car_model}
-            for brand, car_model in vehicle_rows
-            if brand and car_model
+        "categories": [c[0] for c in categories if c[0]],
+        "brand_categories": [
+            {"brand": brand, "category": category}
+            for brand, category in product_rows
+            if brand and category
         ],
         "source_types": SOURCE_TYPES,
         "content_types": CONTENT_TYPES,
         "content_type_groups": {
-            "vehicle": VEHICLE_CONTENT_TYPES,
+            "product": PRODUCT_CONTENT_TYPES,
             "general": GENERAL_CONTENT_TYPES,
         },
     }
@@ -257,15 +248,15 @@ def get_content_type_counts(
     db: Session,
     material_scope: str,
     brand: Optional[str] = None,
-    car_model: Optional[str] = None,
+    category: Optional[str] = None,
 ):
     query = db.query(Material.content_types).filter(
         Material.material_scope == material_scope
     )
     if brand:
         query = query.filter(Material.brand == brand)
-    if car_model:
-        query = query.filter(Material.car_model == car_model)
+    if category:
+        query = query.filter(Material.category == category)
 
     counts = {}
     total = 0

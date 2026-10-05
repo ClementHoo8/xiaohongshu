@@ -96,6 +96,33 @@ def migrate_multi_user_data():
         db.commit()
 
 
+def migrate_rename_car_model_to_category():
+    """Rename the legacy car_model column to category and move scope 'vehicle' to 'product'.
+
+    Must run right after Base.metadata.create_all(): on a database created before the
+    pet-food refactor the old car_model column still exists and the new category column
+    is missing, so queries against Material.category would fail.
+    """
+    inspector = inspect(engine)
+    tables = set(inspector.get_table_names())
+
+    with engine.begin() as connection:
+        for table in ("materials", "ai_feedback"):
+            if table not in tables:
+                continue
+            columns = {column["name"] for column in inspector.get_columns(table)}
+            if "car_model" in columns and "category" not in columns:
+                connection.execute(text(
+                    f"ALTER TABLE {table} RENAME COLUMN car_model TO category"
+                ))
+
+        if "materials" in tables:
+            connection.execute(text(
+                "UPDATE materials SET material_scope = 'product' "
+                "WHERE material_scope = 'vehicle'"
+            ))
+
+
 def migrate_material_scope():
     """Add and backfill material_scope for databases created before this field existed."""
     inspector = inspect(engine)
@@ -112,7 +139,7 @@ def migrate_material_scope():
         connection.execute(text("""
             UPDATE materials
             SET material_scope = CASE
-                WHEN car_model IS NOT NULL AND TRIM(car_model) <> '' THEN 'vehicle'
+                WHEN category IS NOT NULL AND TRIM(category) <> '' THEN 'product'
                 ELSE 'general'
             END
             WHERE material_scope IS NULL OR TRIM(material_scope) = ''
@@ -228,7 +255,7 @@ def migrate_ai_materials_to_creations():
                     "scope_filter": "all",
                     "material_search": "",
                     "brand": material.brand,
-                    "car_model": material.car_model,
+                    "category": material.category,
                     "image_prompt": "",
                     "generated_images": [],
                     "image_messages": [],

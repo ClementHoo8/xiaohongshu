@@ -32,9 +32,9 @@ class Material(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     title = Column(String(500), nullable=False)
-    material_scope = Column(String(20), nullable=False, default="vehicle", index=True)
+    material_scope = Column(String(20), nullable=False, default="product", index=True)
     brand = Column(String(200), nullable=True)
-    car_model = Column(String(200), nullable=True)
+    category = Column(String(200), nullable=True)
     source_type = Column(String(50), nullable=False)
     source_platform = Column(String(100), nullable=True)
     author = Column(String(200), nullable=True)
@@ -97,7 +97,7 @@ class AiFeedback(Base):
     assistant_content = Column(Text, nullable=False)
     material_ids = Column(JSON, default=list)
     brand = Column(String(200), nullable=True)
-    car_model = Column(String(200), nullable=True)
+    category = Column(String(200), nullable=True)
     prompt_version = Column(String(100), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
 

@@ -19,11 +19,13 @@ from backend.database import (
     migrate_material_scope,
     migrate_creator_account_intelligence,
     migrate_multi_user_data,
+    migrate_rename_car_model_to_category,
 )
 from backend.account_monitor import account_monitor_scheduler
 from backend.routers import account_monitoring, ai, creations, creator_accounts, materials, tasks, uploads, users, xiaohongshu, xiaohongshu_shop
 
 Base.metadata.create_all(bind=engine)
+migrate_rename_car_model_to_category()
 migrate_material_scope()
 migrate_material_ai_conversation()
 migrate_material_source_metadata()
@@ -58,7 +60,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(
-    title="Ruby Rain 香氛素材库 API",
+    title="Ruby Rain 宠物零食素材库 API",
     version="1.0.0",
     docs_url="/docs" if api_docs_enabled else None,
     redoc_url="/redoc" if api_docs_enabled else None,
