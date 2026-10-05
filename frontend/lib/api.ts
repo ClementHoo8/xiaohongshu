@@ -1091,8 +1091,6 @@ export interface AiStatus {
   sdk_installed: boolean
   chat_configured: boolean
   image_configured: boolean
-  chat_model: string | null
-  plan_model: string | null
   text_model: string | null
   image_model: string | null
   prompt_version: string

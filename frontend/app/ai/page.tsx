@@ -1655,8 +1655,8 @@ export default function AiStudioPage() {
             </div>
             <h1 className="text-2xl font-semibold">AI 创作</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {status?.chat_model
-                ? `对话模型：${status.chat_model} · 方案模型：${status.plan_model ?? status.text_model}`
+              {status?.text_model
+                ? `对话与方案模型：${status.text_model} · 图片模型：${status.image_model ?? "未配置"}`
                 : "等待后台模型配置"}
             </p>
           </div>
