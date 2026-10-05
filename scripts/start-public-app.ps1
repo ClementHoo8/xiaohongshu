@@ -109,7 +109,7 @@ try {
         }
     } | ConvertTo-Json -Depth 3 | Set-Content -Encoding UTF8 $pidFile
 
-    Write-Host "Ruby Rain is running at http://127.0.0.1:3000"
+    Write-Host "Pure Meal is running at http://127.0.0.1:3000"
     Write-Host "Only port 3000 should be connected to the HTTPS tunnel."
 } catch {
     if ($frontend -and -not $frontend.HasExited) {

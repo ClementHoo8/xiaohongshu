@@ -216,7 +216,7 @@ export default function TasksPage() {
       setGoals(goalResults)
       setSummary(summaryResult)
       setAssignees(assigneeResults)
-      window.dispatchEvent(new CustomEvent("ruby-rain:tasks-updated", {
+      window.dispatchEvent(new CustomEvent("pure-meal:tasks-updated", {
         detail: summaryResult.notification_count,
       }))
     } catch (requestError) {

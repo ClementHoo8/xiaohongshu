@@ -41,7 +41,7 @@ LOGIN_RATE_ACCOUNT_ATTEMPTS = max(
 )
 _login_attempts: dict[str, deque[float]] = defaultdict(deque)
 _login_attempts_lock = Lock()
-_dummy_password_hash = hash_password("ruby-rain-invalid-login-placeholder")
+_dummy_password_hash = hash_password("pure-meal-invalid-login-placeholder")
 
 
 class LoginRequest(BaseModel):

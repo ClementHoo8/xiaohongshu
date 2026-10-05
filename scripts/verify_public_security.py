@@ -9,7 +9,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 
 def main() -> None:
-    with tempfile.TemporaryDirectory(prefix="ruby-rain-security-test-") as temp_dir:
+    with tempfile.TemporaryDirectory(prefix="pure-meal-security-test-") as temp_dir:
         database_path = Path(temp_dir) / "security-test.db"
         os.environ.update(
             {

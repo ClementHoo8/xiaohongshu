@@ -87,7 +87,7 @@ class PublicDataNormalizationTests(unittest.TestCase):
             "red_id": "red-1",
             "nickname": "账号一",
             "avatar_url": "",
-            "keyword": "车载香薰",
+            "keyword": "宠物零食",
             "note": note,
         }
 

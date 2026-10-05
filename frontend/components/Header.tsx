@@ -70,11 +70,11 @@ export function Header({
 
     void refresh()
     const interval = window.setInterval(() => void refresh(), 60_000)
-    window.addEventListener("ruby-rain:tasks-updated", handleTasksUpdated)
+    window.addEventListener("pure-meal:tasks-updated", handleTasksUpdated)
     return () => {
       cancelled = true
       window.clearInterval(interval)
-      window.removeEventListener("ruby-rain:tasks-updated", handleTasksUpdated)
+      window.removeEventListener("pure-meal:tasks-updated", handleTasksUpdated)
     }
   }, [user])
 
@@ -90,7 +90,7 @@ export function Header({
       await submitPlatformSuggestion({ content, source_path: pathname })
       setSuggestionSent(true)
       setSuggestion("")
-      window.dispatchEvent(new Event("ruby-rain:tasks-updated"))
+      window.dispatchEvent(new Event("pure-meal:tasks-updated"))
     } catch (error) {
       setSuggestionError(error instanceof Error ? error.message : "建议提交失败")
     } finally {
@@ -101,12 +101,12 @@ export function Header({
   return (
     <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
       <div className="app-container flex h-16 items-center gap-3 lg:gap-5">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="Ruby Rain 素材库首页">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="Pure Meal 素材库首页">
           <span className="grid size-9 place-items-center rounded-md bg-primary font-semibold text-primary-foreground">
             R
           </span>
           <span className="hidden leading-tight sm:block">
-            <strong className="block text-sm font-semibold">Ruby Rain</strong>
+            <strong className="block text-sm font-semibold">Pure Meal</strong>
             <span className="block text-[11px] text-muted-foreground">宠物零食素材库</span>
           </span>
         </Link>

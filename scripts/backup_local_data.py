@@ -28,7 +28,7 @@ def create_database_snapshot(target: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Create a consistent Ruby Rain database and upload archive."
+        description="Create a consistent Pure Meal database and upload archive."
     )
     parser.add_argument(
         "--destination",
@@ -44,11 +44,11 @@ def main() -> None:
     destination = args.destination.expanduser().resolve()
     destination.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    archive_path = destination / f"ruby-rain-backup-{timestamp}.zip"
+    archive_path = destination / f"pure-meal-backup-{timestamp}.zip"
     temporary_archive = destination / f".{archive_path.name}.tmp"
 
     database_handle, database_snapshot_name = tempfile.mkstemp(
-        prefix="ruby-rain-database-",
+        prefix="pure-meal-database-",
         suffix=".db",
         dir=destination,
     )

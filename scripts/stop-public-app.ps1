@@ -8,7 +8,7 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $pidFile = Join-Path $repoRoot "runtime\public-app-processes.json"
 
 if (-not (Test-Path $pidFile)) {
-    Write-Host "No managed Ruby Rain processes were found."
+    Write-Host "No managed Pure Meal processes were found."
     exit 0
 }
 

@@ -18,7 +18,7 @@ async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
     credentials: "include",
   })
   if (response.status === 401 && typeof window !== "undefined") {
-    window.dispatchEvent(new Event("ruby-rain:unauthorized"))
+    window.dispatchEvent(new Event("pure-meal:unauthorized"))
   }
   return response
 }
@@ -1236,7 +1236,7 @@ export async function createMaterial(formData: FormData): Promise<Material> {
   })
   if (!res.ok) await throwApiError(res, "添加素材失败，请检查必填项")
   const material = await res.json()
-  if (typeof window !== "undefined") window.dispatchEvent(new Event("ruby-rain:material-created"))
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("pure-meal:material-created"))
   return material
 }
 

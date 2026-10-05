@@ -965,7 +965,7 @@ export default function CreatorAccountsPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label htmlFor="creator-name" className="text-sm font-medium">内部名称</label>
-                <Input id="creator-name" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} placeholder="例如：Ruby Rain 车生活号" />
+                <Input id="creator-name" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} placeholder="例如：Pure Meal 宠物零食号" />
               </div>
               <div className="space-y-1.5">
                 <label htmlFor="creator-xhs-id" className="text-sm font-medium">小红书用户 ID 或主页链接</label>
@@ -1019,7 +1019,7 @@ export default function CreatorAccountsPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label htmlFor="creator-tone" className="text-sm font-medium">语气与人设</label>
-                <Textarea id="creator-tone" value={form.tone_style} onChange={(event) => setForm((current) => ({ ...current, tone_style: event.target.value }))} rows={4} placeholder="例如：专业但不说教，像懂车的朋友" />
+                <Textarea id="creator-tone" value={form.tone_style} onChange={(event) => setForm((current) => ({ ...current, tone_style: event.target.value }))} rows={4} placeholder="例如：专业但不说错，像懂宠物的朋友" />
               </div>
               <div className="space-y-1.5">
                 <label htmlFor="creator-pillars" className="text-sm font-medium">内容支柱</label>

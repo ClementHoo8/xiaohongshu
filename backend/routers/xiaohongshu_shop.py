@@ -108,7 +108,7 @@ def _connection_to_status(
 ) -> dict[str, Any]:
     config = _xhs_config()
     configured = all(config[key] for key in ("app_id", "app_secret", "redirect_uri"))
-    state = f"ruby-rain-{current_user.id[:8]}"
+    state = f"pure-meal-{current_user.id[:8]}"
     now = datetime.utcnow()
     refresh_expired = bool(
         connection and connection.refresh_token_expires_at <= now

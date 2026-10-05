@@ -42,7 +42,7 @@ export default function LoginPage() {
         <div className="flex items-center gap-3">
           <span className="grid size-11 place-items-center rounded-md bg-primary text-lg font-semibold text-primary-foreground">R</span>
           <div>
-            <h1 className="text-base font-semibold">Ruby Rain</h1>
+            <h1 className="text-base font-semibold">Pure Meal</h1>
             <p className="text-xs text-background/65">宠物零食素材与 AI 创作平台</p>
           </div>
         </div>
@@ -57,7 +57,7 @@ export default function LoginPage() {
           <div className="mb-8 flex items-center gap-3 lg:hidden">
             <span className="grid size-10 place-items-center rounded-md bg-primary font-semibold text-primary-foreground">R</span>
             <div>
-              <h1 className="text-sm font-semibold">Ruby Rain</h1>
+              <h1 className="text-sm font-semibold">Pure Meal</h1>
               <p className="text-xs text-muted-foreground">宠物零食素材库</p>
             </div>
           </div>

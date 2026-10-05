@@ -34,7 +34,7 @@ import { GENERAL_CONTENT_TYPES, PRODUCT_CONTENT_TYPES } from "@/lib/materials"
 import { cn } from "@/lib/utils"
 
 const PAGE_SIZE = 18
-const LAST_CATEGORY_KEY = "ruby-rain-last-category"
+const LAST_CATEGORY_KEY = "pure-meal-last-category"
 
 const EMPTY_FILTERS: FilterState = {
   brand: "",

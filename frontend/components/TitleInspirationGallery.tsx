@@ -45,7 +45,7 @@ function getTitleType(material: Material) {
   if (/([0-9０-９一二三四五六七八九十]+个|[0-9０-９]+条|Top\s*[0-9０-９]+)/i.test(title)) return "数字型"
   if (/(教程|攻略|指南|方法|清单|步骤|干货)/.test(title)) return "干货型"
   if (/(救命|真香|破防|治愈|狠狠爱|太爱|好喜欢|幸福感)/.test(title)) return "情绪型"
-  if (/(通勤|约会|旅行|露营|车里|车内|下班|周末|雨天|夏天|冬天)/.test(title)) return "场景型"
+  if (/(通勤|出差|旅行|露营|换季|在家|下班|周末|雨天|夏天|冬天)/.test(title)) return "场景型"
   return "钩子型"
 }
 

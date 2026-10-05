@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Ruby Rain 宠物零食素材库",
+  title: "Pure Meal 宠物零食素材库",
   description: "小红书宠物零食与鲜食素材资产库",
 }
 

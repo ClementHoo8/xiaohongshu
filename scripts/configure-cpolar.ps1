@@ -44,7 +44,7 @@ Stop-Service -Name cpolar -Force
     "client_dashboard_addr: 127.0.0.1:9200"
     ""
     "tunnels:"
-    "  ruby-rain:"
+    "  pure-meal:"
     "    proto: http"
     "    addr: `"127.0.0.1:3000`""
     "    region: cn"
@@ -75,4 +75,4 @@ $service.WaitForStatus(
     [TimeSpan]::FromSeconds(30)
 )
 
-Write-Host "Cpolar now exposes only the Ruby Rain application."
+Write-Host "Cpolar now exposes only the Pure Meal application."

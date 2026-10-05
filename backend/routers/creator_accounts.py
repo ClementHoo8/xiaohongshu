@@ -206,7 +206,7 @@ def build_basic_analysis(notes: list[dict[str, Any]], profile: dict[str, Any], w
         "感叹": sum("!" in title or "！" in title for title in titles),
         "表情符号": sum(_contains_emoji(title) for title in titles),
         "数字信息": sum(bool(re.search(r"\d", title)) for title in titles),
-        "人群点名": sum(bool(re.search(r"宝子|姐妹|车主|新手|打工人|宝宝|朋友们", title)) for title in titles),
+        "人群点名": sum(bool(re.search(r"宝子|姐妹|铲屎官|猫奴|狗奴|新手|打工人|宝宝|朋友们", title)) for title in titles),
         "紧迫或提醒": sum(bool(re.search(r"速看|避雷|别错过|紧急|求助|劝|注意|必看", title)) for title in titles),
     }
     hook_patterns = [

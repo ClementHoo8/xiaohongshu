@@ -9,7 +9,7 @@ from backend.models import User, UserSession
 from backend.security import create_session_token, hash_session_token
 
 
-SESSION_COOKIE_NAME = "ruby_rain_session"
+SESSION_COOKIE_NAME = "pure_meal_session"
 SESSION_DAYS = max(1, min(int(os.getenv("SESSION_DAYS", "14")), 90))
 SESSION_COOKIE_SECURE_MODE = os.getenv("SESSION_COOKIE_SECURE", "auto").strip().lower()
 

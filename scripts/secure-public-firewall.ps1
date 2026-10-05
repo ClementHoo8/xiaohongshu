@@ -20,7 +20,7 @@ if (-not $isAdministrator) {
     exit 0
 }
 
-$ruleName = "Ruby Rain - Block direct service ports"
+$ruleName = "Pure Meal - Block direct service ports"
 $existingRule = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
 if ($existingRule) {
     Remove-NetFirewallRule -DisplayName $ruleName
@@ -28,7 +28,7 @@ if ($existingRule) {
 
 New-NetFirewallRule `
     -DisplayName $ruleName `
-    -Description "Allow Ruby Rain only through its local HTTPS tunnel." `
+    -Description "Allow Pure Meal only through its local HTTPS tunnel." `
     -Direction Inbound `
     -Action Block `
     -Protocol TCP `

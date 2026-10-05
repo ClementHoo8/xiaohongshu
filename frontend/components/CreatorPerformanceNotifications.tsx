@@ -43,7 +43,7 @@ function CreatorPerformanceNotificationSession() {
   }, [])
 
   useEffect(() => {
-    const channel = new BroadcastChannel("ruby-rain-creator-performance-alerts")
+    const channel = new BroadcastChannel("pure-meal-creator-performance-alerts")
     channelRef.current = channel
     channel.onmessage = (event) => {
       if (event.data?.type === "seen") {

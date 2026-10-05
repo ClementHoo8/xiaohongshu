@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null)
       setLoading(false)
     }
-    window.addEventListener("ruby-rain:unauthorized", handleUnauthorized)
+    window.addEventListener("pure-meal:unauthorized", handleUnauthorized)
     getCurrentUser()
       .then((authenticatedUser) => {
         if (active) setUser(authenticatedUser)
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
     return () => {
       active = false
-      window.removeEventListener("ruby-rain:unauthorized", handleUnauthorized)
+      window.removeEventListener("pure-meal:unauthorized", handleUnauthorized)
     }
   }, [])
 

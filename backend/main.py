@@ -60,7 +60,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(
-    title="Ruby Rain 宠物零食素材库 API",
+    title="Pure Meal 宠物零食素材库 API",
     version="1.0.0",
     docs_url="/docs" if api_docs_enabled else None,
     redoc_url="/redoc" if api_docs_enabled else None,

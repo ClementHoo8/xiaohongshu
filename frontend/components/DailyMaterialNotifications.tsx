@@ -50,7 +50,7 @@ function DailyMaterialNotificationSession() {
   }, [])
 
   useEffect(() => {
-    const channel = new BroadcastChannel("ruby-rain-material-notifications")
+    const channel = new BroadcastChannel("pure-meal-material-notifications")
     notificationChannel.current = channel
     channel.onmessage = (event) => {
       if (event.data?.type === "seen") {
@@ -64,12 +64,12 @@ function DailyMaterialNotificationSession() {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") void refresh()
     }
-    window.addEventListener("ruby-rain:material-created", handleMaterialCreated)
+    window.addEventListener("pure-meal:material-created", handleMaterialCreated)
     document.addEventListener("visibilitychange", handleVisibility)
     return () => {
       window.clearTimeout(initialTimer)
       window.clearInterval(interval)
-      window.removeEventListener("ruby-rain:material-created", handleMaterialCreated)
+      window.removeEventListener("pure-meal:material-created", handleMaterialCreated)
       document.removeEventListener("visibilitychange", handleVisibility)
       notificationChannel.current = null
       channel.close()
