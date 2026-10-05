@@ -208,12 +208,10 @@ export default function CreatorAccountsPage() {
   useEffect(() => {
     if (!user) return
     let active = true
-    Promise.all([getCreatorAccounts(), getXhsPublicDataStatus()])
-      .then(([results, status]) => {
+    getCreatorAccounts()
+      .then((results) => {
         if (!active) return
         setAccounts(results)
-        setSourceStatus(status)
-        setSyncPageLimit(status.default_max_pages)
         if (results.length) setNotesLoading(true)
         setSelectedAccountId((current) => current || results[0]?.id || "")
         setError("")
@@ -224,6 +222,23 @@ export default function CreatorAccountsPage() {
       .finally(() => {
         if (active) setLoading(false)
       })
+    return () => {
+      active = false
+    }
+  }, [user])
+
+  // 数据源状态单独加载：这个接口内部要跑 `xhs status` 子进程，CLI 冷启动要十几秒。
+  // 之前和账号列表放在同一个 Promise.all 里，整页会被拖住一直显示「正在加载创作账号」。
+  useEffect(() => {
+    if (!user) return
+    let active = true
+    getXhsPublicDataStatus()
+      .then((status) => {
+        if (!active) return
+        setSourceStatus(status)
+        setSyncPageLimit(status.default_max_pages)
+      })
+      .catch(() => undefined)
     return () => {
       active = false
     }
@@ -539,9 +554,11 @@ export default function CreatorAccountsPage() {
         <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-y bg-card px-4 py-3 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5"><Database className="size-3.5" />公开数据源</span>
           <span className={sourceStatus?.cli_authenticated ? "text-emerald-700" : undefined}>
-            CLI {sourceStatus?.cli_authenticated
-              ? `${sourceStatus.cli_user?.name || "已登录"}${sourceStatus.cli_user?.red_id ? `（${sourceStatus.cli_user.red_id}）` : ""}`
-              : sourceStatus?.cli_installed ? "未登录" : "不可用"}
+            CLI {!sourceStatus
+              ? "检测中…"
+              : sourceStatus.cli_authenticated
+                ? `${sourceStatus.cli_user?.name || "已登录"}${sourceStatus.cli_user?.red_id ? `（${sourceStatus.cli_user.red_id}）` : ""}`
+                : sourceStatus.cli_installed ? "未登录" : "不可用"}
           </span>
           {sourceStatus?.cli_installed && (
             <Button
@@ -556,7 +573,7 @@ export default function CreatorAccountsPage() {
               {sourceStatus.cli_authenticated ? "重新登录小红书" : "登录小红书"}
             </Button>
           )}
-          <span className={sourceStatus?.tikhub_configured ? "text-emerald-700" : undefined}>TikHub {sourceStatus?.tikhub_configured ? "已配置" : "未配置"}</span>
+          <span className={sourceStatus?.tikhub_configured ? "text-emerald-700" : undefined}>TikHub {!sourceStatus ? "检测中…" : sourceStatus.tikhub_configured ? "已配置" : "未配置"}</span>
           <span className="flex items-center gap-1.5"><CalendarClock className="size-3.5" />自有账号{sourceStatus?.daily_monitor?.time_label || "每天 09:00"}监测</span>
           <span>常规抓取 CLI 优先；TikHub 仅用于每日近 7 天指标分析</span>
           <span>当前登录账号仅作为公开访问身份，不等于被同步账号</span>
