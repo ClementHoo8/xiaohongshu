@@ -652,6 +652,35 @@ export async function getXhsPublicDataStatus(): Promise<XhsPublicDataStatus> {
   return res.json()
 }
 
+export type XhsLoginState = "starting" | "waiting" | "scanned" | "confirmed" | "error" | "expired"
+
+export interface XhsLoginSession {
+  session_id: string
+  state: XhsLoginState
+  message: string
+  error: string
+  qr_data_url: string | null
+  expires_at: string
+  user: { id: string; name: string; red_id: string } | null
+}
+
+/** 后端托管一个 CLI 子进程去申请二维码，前端只轮询状态。 */
+export async function startXhsLoginSession(): Promise<XhsLoginSession> {
+  const res = await apiFetch(`${API_BASE}/api/import/xiaohongshu/login/session`, { method: "POST" })
+  if (!res.ok) await throwApiError(res, "小红书登录二维码获取失败")
+  return res.json()
+}
+
+export async function getXhsLoginSession(sessionId: string): Promise<XhsLoginSession> {
+  const res = await apiFetch(`${API_BASE}/api/import/xiaohongshu/login/session/${sessionId}`)
+  if (!res.ok) await throwApiError(res, "小红书登录状态查询失败")
+  return res.json()
+}
+
+export async function cancelXhsLoginSession(sessionId: string): Promise<void> {
+  await apiFetch(`${API_BASE}/api/import/xiaohongshu/login/session/${sessionId}`, { method: "DELETE" })
+}
+
 export async function getCreatorAccountNotes(
   id: string,
   params: {

@@ -1,11 +1,14 @@
 import asyncio
+import base64
 import json
 import mimetypes
 import os
 import re
 import shutil
+import tempfile
+import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -590,7 +593,7 @@ async def get_import_status():
     return {
         "installed": True,
         "cli_path": cli_path,
-        "setup_hint": "登录失效时运行 xhs login --cookie-source firefox（或换成实际登录的浏览器）",
+        "setup_hint": "登录失效时到「账号情报」页点「登录小红书」重新扫码",
     }
 
 
@@ -668,3 +671,208 @@ async def import_xiaohongshu_material(request: XiaohongshuImportRequest):
         "source_metadata": source_metadata,
         "warnings": warnings,
     }
+
+
+# ---------------------------------------------------------------------------
+# 扫码登录会话
+#
+# 为什么由后端托管子进程而不是前端直接调 CLI：
+# 扫码要等用户在手机上确认，属于长耗时交互，而且 CLI 装在独立解释器里（依赖
+# playwright / camoufox 等重量级包），不能塞进后端 .venv。这里用子进程 + 状态文件
+# 通信，前端只轮询后端，刷新页面也不会把等待中的登录进程弄丢。
+# ---------------------------------------------------------------------------
+
+LOGIN_SESSION_TTL_SECONDS = 900
+LOGIN_QR_WAIT_SECONDS = 25
+_LOGIN_SESSIONS: dict[str, dict[str, Any]] = {}
+
+
+def _get_cli_python() -> str:
+    """解析运行 xiaohongshu-cli 的解释器路径。
+
+    CLI 装在独立 venv 里，和后端自己的解释器不是同一个，所以单独解析一次。
+    """
+    configured = os.getenv("XHS_CLI_PYTHON", "").strip().strip('"')
+    if configured and Path(configured).exists():
+        return configured
+
+    cli = Path(_get_cli_path())
+    for candidate in (
+        cli.parent / "python.exe",
+        cli.parent / "python",
+        cli.parent.parent / "bin" / "python",
+    ):
+        if candidate.exists():
+            return str(candidate)
+
+    raise HTTPException(
+        status_code=503,
+        detail="未找到小红书导入工具的解释器，请在 .env 中设置 XHS_CLI_PYTHON",
+    )
+
+
+def _login_helper_path() -> Path:
+    helper = Path(__file__).resolve().parents[2] / "scripts" / "xhs_login_helper.py"
+    if not helper.exists():
+        raise HTTPException(status_code=503, detail="扫码登录助手脚本缺失：scripts/xhs_login_helper.py")
+    return helper
+
+
+def _dispose_login_session(session_id: str) -> None:
+    session = _LOGIN_SESSIONS.pop(session_id, None)
+    if not session:
+        return
+
+    process = session.get("process")
+    if process is not None and process.returncode is None:
+        try:
+            process.terminate()
+        except (ProcessLookupError, OSError):
+            pass
+
+    directory = session.get("directory")
+    if directory:
+        shutil.rmtree(directory, ignore_errors=True)
+
+
+def _prune_login_sessions() -> None:
+    now = time.time()
+    for session_id, session in list(_LOGIN_SESSIONS.items()):
+        if now - float(session.get("created_at", now)) > LOGIN_SESSION_TTL_SECONDS:
+            _dispose_login_session(session_id)
+
+
+def _read_login_status(session: dict[str, Any]) -> dict[str, Any]:
+    """读助手写的状态文件；文件还没落盘时按「正在申请」处理。"""
+    fallback = {"state": "starting", "message": "正在申请二维码…"}
+    status_file: Path = session["status_file"]
+    if not status_file.exists():
+        return fallback
+    try:
+        payload = json.loads(status_file.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return fallback
+    return payload if isinstance(payload, dict) else fallback
+
+
+def _login_qr_data_url(session: dict[str, Any]) -> str | None:
+    """二维码转 base64 data URL，前端直接塞进 <img> 即可，省一次二进制请求。"""
+    cached = session.get("qr_data_url")
+    if cached:
+        return cached
+
+    qr_file: Path = session["qr_file"]
+    if not qr_file.exists():
+        return None
+    try:
+        raw = qr_file.read_bytes()
+    except OSError:
+        return None
+    if not raw:
+        return None
+
+    data_url = "data:image/png;base64," + base64.b64encode(raw).decode("ascii")
+    session["qr_data_url"] = data_url
+    return data_url
+
+
+async def _login_session_payload(session_id: str, session: dict[str, Any]) -> dict[str, Any]:
+    status = _read_login_status(session)
+    state = str(status.get("state") or "starting")
+
+    # 登录确认后顺手把 CLI 的账号信息带回来，前端状态条可以直接刷新
+    if state == "confirmed" and not session.get("user"):
+        try:
+            data = await run_xhs_command("status", "", timeout_seconds=25)
+            raw_user = data.get("user") if isinstance(data.get("user"), dict) else None
+            if raw_user:
+                session["user"] = {
+                    "id": str(raw_user.get("id") or raw_user.get("user_id") or ""),
+                    "name": str(raw_user.get("name") or raw_user.get("nickname") or ""),
+                    "red_id": str(raw_user.get("red_id") or raw_user.get("username") or ""),
+                }
+        except HTTPException:
+            pass
+
+    return {
+        "session_id": session_id,
+        "state": state,
+        "message": str(status.get("message") or ""),
+        "error": str(status.get("error") or ""),
+        "qr_data_url": _login_qr_data_url(session),
+        "expires_at": session["expires_at"],
+        "user": session.get("user"),
+    }
+
+
+@router.post("/login/session")
+async def create_login_session():
+    _prune_login_sessions()
+
+    cli_python = _get_cli_python()
+    helper = _login_helper_path()
+
+    directory = Path(tempfile.mkdtemp(prefix="xhs-login-"))
+    status_file = directory / "status.json"
+    qr_file = directory / "qr.png"
+
+    env = os.environ.copy()
+    env["PYTHONIOENCODING"] = "utf-8"
+    env["PYTHONUTF8"] = "1"
+
+    try:
+        process = await asyncio.create_subprocess_exec(
+            cli_python,
+            str(helper),
+            "--status-file",
+            str(status_file),
+            "--qr-file",
+            str(qr_file),
+            "--timeout",
+            "600",
+            # 助手会持续打印进度，走管道而没人读会把缓冲区塞满卡死，直接丢弃
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
+            env=env,
+        )
+    except OSError as error:
+        shutil.rmtree(directory, ignore_errors=True)
+        raise HTTPException(status_code=503, detail="扫码登录进程无法启动") from error
+
+    session_id = uuid.uuid4().hex
+    _LOGIN_SESSIONS[session_id] = {
+        "process": process,
+        "directory": directory,
+        "status_file": status_file,
+        "qr_file": qr_file,
+        "created_at": time.time(),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(seconds=600)).isoformat(),
+        "qr_data_url": None,
+        "user": None,
+    }
+
+    # 二维码由 CLI 内部请求生成，通常几秒内就绪；等一小会儿能让前端少一轮空轮询
+    deadline = time.time() + LOGIN_QR_WAIT_SECONDS
+    while time.time() < deadline:
+        if qr_file.exists() and qr_file.stat().st_size > 0:
+            break
+        if process.returncode is not None:
+            break
+        await asyncio.sleep(0.4)
+
+    return await _login_session_payload(session_id, _LOGIN_SESSIONS[session_id])
+
+
+@router.get("/login/session/{session_id}")
+async def get_login_session(session_id: str):
+    _prune_login_sessions()
+    session = _LOGIN_SESSIONS.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="登录会话不存在或已过期，请重新获取二维码")
+    return await _login_session_payload(session_id, session)
+
+
+@router.delete("/login/session/{session_id}")
+async def cancel_login_session(session_id: str):
+    _dispose_login_session(session_id)
+    return {"ok": True}

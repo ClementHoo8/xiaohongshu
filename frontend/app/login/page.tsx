@@ -42,7 +42,7 @@ export default function LoginPage() {
       <section className="hidden border-r bg-foreground px-10 py-12 text-background lg:flex lg:flex-col">
         <div className="flex items-center gap-3">
           <Image
-            src="/logo.png"
+            src="/logo-mark.png"
             alt="Pure Meal"
             width={44}
             height={44}
@@ -64,7 +64,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           <div className="mb-8 flex items-center gap-3 lg:hidden">
             <Image
-              src="/logo.png"
+              src="/logo-mark.png"
               alt="Pure Meal"
               width={40}
               height={40}

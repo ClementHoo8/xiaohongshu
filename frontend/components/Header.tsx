@@ -104,17 +104,14 @@ export function Header({
       <div className="app-container flex h-16 items-center gap-3 lg:gap-5">
         <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="Pure Meal 素材库首页">
           <Image
-            src="/logo.png"
+            src="/logo-mark.png"
             alt="Pure Meal"
             width={36}
             height={36}
             priority
             className="size-9 shrink-0 rounded-md"
           />
-          <span className="hidden leading-tight sm:block">
-            <strong className="block text-sm font-semibold">Pure Meal</strong>
-            <span className="block text-[11px] text-muted-foreground">宠物零食素材库</span>
-          </span>
+          <span className="hidden text-sm font-semibold sm:block">宠物零食素材库</span>
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="主导航">

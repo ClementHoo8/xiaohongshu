@@ -14,6 +14,7 @@ import {
   Pencil,
   Plus,
   Power,
+  QrCode,
   RefreshCw,
   Search,
   TrendingUp,
@@ -44,16 +45,20 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   analyzeCreatorAccount,
   archiveCreatorAccount,
+  cancelXhsLoginSession,
   createCreatorAccount,
   discoverCreatorAccounts,
   getCreatorAccountNotes,
   getCreatorAccounts,
+  getXhsLoginSession,
   getXhsPublicDataStatus,
+  startXhsLoginSession,
   updateCreatorAccount,
   type CreatorAccount,
   type CreatorDiscoveryCandidate,
   type CreatorAccountPayload,
   type CreatorAccountSampleNote,
+  type XhsLoginSession,
   type XhsPublicDataStatus,
 } from "@/lib/api"
 
@@ -184,6 +189,10 @@ export default function CreatorAccountsPage() {
   const [discoveryCandidates, setDiscoveryCandidates] = useState<CreatorDiscoveryCandidate[]>([])
   const [discoveryWarnings, setDiscoveryWarnings] = useState<string[]>([])
   const [addingCandidateId, setAddingCandidateId] = useState("")
+  const [loginOpen, setLoginOpen] = useState(false)
+  const [loginSession, setLoginSession] = useState<XhsLoginSession | null>(null)
+  const [loginStarting, setLoginStarting] = useState(false)
+  const [loginError, setLoginError] = useState("")
 
   const selectedAccount = useMemo(
     () => accounts.find((account) => account.id === selectedAccountId) ?? accounts[0] ?? null,
@@ -259,6 +268,85 @@ export default function CreatorAccountsPage() {
       window.clearInterval(timer)
     }
   }, [selectedAccount?.analysis.history_archive?.status, selectedAccount?.id])
+
+  const refreshSourceStatus = () =>
+    getXhsPublicDataStatus()
+      .then((status) => setSourceStatus(status))
+      .catch(() => undefined)
+
+  const openXhsLogin = async () => {
+    // 重新获取二维码时先把旧会话收掉，否则上一个等待中的 CLI 进程会白跑到 TTL
+    const previousId = loginSession?.session_id
+    if (previousId) void cancelXhsLoginSession(previousId).catch(() => undefined)
+
+    setLoginOpen(true)
+    setLoginSession(null)
+    setLoginError("")
+    setLoginStarting(true)
+    try {
+      setLoginSession(await startXhsLoginSession())
+    } catch (requestError) {
+      setLoginError(requestError instanceof Error ? requestError.message : "小红书登录二维码获取失败")
+    } finally {
+      setLoginStarting(false)
+    }
+  }
+
+  const closeXhsLogin = (open: boolean) => {
+    setLoginOpen(open)
+    if (open) return
+    const sessionId = loginSession?.session_id
+    setLoginSession(null)
+    setLoginError("")
+    if (sessionId) void cancelXhsLoginSession(sessionId).catch(() => undefined)
+  }
+
+  // 轮询登录状态：二维码就绪 → 已扫码 → 已确认
+  useEffect(() => {
+    if (!loginOpen) return
+    const sessionId = loginSession?.session_id
+    if (!sessionId) return
+    if (loginSession?.state && ["confirmed", "error", "expired"].includes(loginSession.state)) return
+
+    let active = true
+    const timer = window.setInterval(() => {
+      getXhsLoginSession(sessionId)
+        .then((session) => {
+          if (active) setLoginSession(session)
+        })
+        .catch((requestError) => {
+          if (!active) return
+          window.clearInterval(timer)
+          setLoginError(requestError instanceof Error ? requestError.message : "小红书登录状态查询失败")
+        })
+    }, 2000)
+    return () => {
+      active = false
+      window.clearInterval(timer)
+    }
+  }, [loginOpen, loginSession?.session_id, loginSession?.state])
+
+  // 扫码确认后刷新状态条，稍等一下让用户看到成功反馈再关闭弹窗
+  useEffect(() => {
+    if (loginSession?.state !== "confirmed") return
+    let active = true
+    void refreshSourceStatus()
+    const timer = window.setTimeout(() => {
+      if (active) closeXhsLogin(false)
+    }, 1600)
+    return () => {
+      active = false
+      window.clearTimeout(timer)
+    }
+  }, [loginSession?.state])
+
+  const loginTone = (state: XhsLoginSession["state"] | undefined) => {
+    if (state === "confirmed") return "text-emerald-700"
+    if (state === "scanned") return "text-primary"
+    if (state === "expired") return "text-amber-700"
+    if (state === "error") return "text-red-700"
+    return "text-muted-foreground"
+  }
 
   const replaceAccount = (updated: CreatorAccount) => {
     setAccounts((current) => {
@@ -455,6 +543,19 @@ export default function CreatorAccountsPage() {
               ? `${sourceStatus.cli_user?.name || "已登录"}${sourceStatus.cli_user?.red_id ? `（${sourceStatus.cli_user.red_id}）` : ""}`
               : sourceStatus?.cli_installed ? "未登录" : "不可用"}
           </span>
+          {sourceStatus?.cli_installed && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="shadow-none"
+              onClick={() => void openXhsLogin()}
+              disabled={loginStarting}
+            >
+              {loginStarting ? <LoaderCircle className="animate-spin" /> : <QrCode />}
+              {sourceStatus.cli_authenticated ? "重新登录小红书" : "登录小红书"}
+            </Button>
+          )}
           <span className={sourceStatus?.tikhub_configured ? "text-emerald-700" : undefined}>TikHub {sourceStatus?.tikhub_configured ? "已配置" : "未配置"}</span>
           <span className="flex items-center gap-1.5"><CalendarClock className="size-3.5" />自有账号{sourceStatus?.daily_monitor?.time_label || "每天 09:00"}监测</span>
           <span>常规抓取 CLI 优先；TikHub 仅用于每日近 7 天指标分析</span>
@@ -1066,6 +1167,61 @@ export default function CreatorAccountsPage() {
               </Button>}
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={loginOpen} onOpenChange={closeXhsLogin}>
+        <DialogContent className="max-w-md">
+          <DialogTitle>登录小红书</DialogTitle>
+          <DialogDescription>
+            用小红书 App 扫码并在手机上确认。凭证只保存在本机，仅作为公开数据抓取的访问身份，不会同步成被监控账号。
+          </DialogDescription>
+
+          <div className="flex flex-col items-center gap-4 py-2">
+            {loginError ? (
+              <div className="flex w-full items-start gap-2 border-y border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
+                <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                {loginError}
+              </div>
+            ) : loginSession?.qr_data_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={loginSession.qr_data_url}
+                alt="小红书登录二维码"
+                className="size-56 rounded-md border bg-white p-2"
+              />
+            ) : (
+              <div className="flex size-56 flex-col items-center justify-center gap-2 rounded-md border bg-muted/40 text-sm text-muted-foreground">
+                <LoaderCircle className="size-5 animate-spin" />
+                {loginStarting ? "正在申请二维码" : "等待二维码"}
+              </div>
+            )}
+
+            <div className={`flex items-center gap-2 text-sm ${loginTone(loginSession?.state)}`}>
+              {loginSession?.state === "confirmed" ? (
+                <CheckCircle2 className="size-4" />
+              ) : ["error", "expired"].includes(loginSession?.state || "") ? (
+                <AlertCircle className="size-4" />
+              ) : (
+                <LoaderCircle className="size-4 animate-spin" />
+              )}
+              {loginSession?.state === "confirmed" ? "登录成功，正在刷新状态" : loginSession?.message || "正在申请二维码…"}
+            </div>
+
+            <p className="text-center text-xs leading-5 text-muted-foreground">
+              扫码后请在手机端点「确认登录」。二维码有效期约 10 分钟，过期后点下方按钮重新获取。
+            </p>
+          </div>
+
+          <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
+            <Button type="button" variant="outline" onClick={() => closeXhsLogin(false)}>关闭</Button>
+            {["error", "expired"].includes(loginSession?.state || "") && (
+              <Button type="button" onClick={() => void openXhsLogin()} disabled={loginStarting}>
+                {loginStarting ? <LoaderCircle className="animate-spin" /> : <RefreshCw />}
+                重新获取二维码
+              </Button>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
